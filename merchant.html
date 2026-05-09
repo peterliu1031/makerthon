@@ -23,7 +23,7 @@
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
                 <button onclick="changeQty('CUP', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
-                <input type="number" id="qty-CUP" value="0" min="0" onchange="validateInput('${type}')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <input type="number" id="qty-CUP" value="0" min="0" onchange="validateInput('CUP')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
                 <button onclick="changeQty('CUP', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
@@ -41,7 +41,7 @@
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
                 <button onclick="changeQty('BOX', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
-                <input type="number" id="qty-BOX" value="0" min="0" onchange="validateInput('${type}')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <input type="number" id="qty-BOX" value="0" min="0" onchange="validateInput('BOX')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
                 <button onclick="changeQty('BOX', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
@@ -59,7 +59,7 @@
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
                 <button onclick="changeQty('BOWL', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
-                <input type="number" id="qty-BOWL" value="0" min="0" onchange="validateInput('${type}')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <input type="number" id="qty-BOWL" value="0" min="0" onchange="validateInput('BOWL')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
                 <button onclick="changeQty('BOWL', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
@@ -85,8 +85,21 @@
 
     <section class="space-y-6">
       <div class="rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur h-full">
-        <h2 class="text-lg font-bold border-b border-slate-800 pb-4 italic">即時出借紀錄清單</h2>
-        <div id="adminHistory" class="mt-4 space-y-4 max-h-[600px] overflow-y-auto">
+        
+        <h2 class="text-lg font-bold border-b border-slate-800 pb-3 italic text-emerald-400">環保貢獻度看板</h2>
+        <div class="mt-4 grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-slate-800/40 p-4 rounded-xl border border-emerald-500/20 text-center">
+                <p class="text-[10px] text-slate-400">推廣發放總數</p>
+                <p class="text-2xl font-bold text-emerald-400 mt-1" id="merchantEco">0 <span class="text-xs font-normal">次</span></p>
+            </div>
+            <div class="bg-slate-800/40 p-4 rounded-xl border border-cyan-500/20 text-center">
+                <p class="text-[10px] text-slate-400">等同減碳排量</p>
+                <p class="text-2xl font-bold text-cyan-400 mt-1" id="merchantCarbon">0.00 <span class="text-xs font-normal">kg</span></p>
+            </div>
+        </div>
+
+        <h2 class="text-lg font-bold border-b border-slate-800 pb-3 italic">即時出借紀錄清單</h2>
+        <div id="adminHistory" class="mt-4 space-y-4 max-h-[400px] overflow-y-auto">
           <p class="text-slate-600 text-xs italic text-center py-10">尚無歷史出借資料</p>
         </div>
       </div>
@@ -117,11 +130,8 @@
     function changeQty(type, delta) {
       const input = document.getElementById(`qty-${type}`);
       let val = parseInt(input.value) + delta;
-      
-      // 不能低於 0，也不能高於目前庫存
       if (val < 0) val = 0;
       if (val > currentStock[type]) val = currentStock[type];
-      
       input.value = val;
       updateStockUI();
     }
@@ -130,7 +140,7 @@
       const input = document.getElementById(`qty-${type}`);
       let val = parseInt(input.value) || 0;
       if (val < 0) val = 0;
-      if (val > currentStock[type]) val = currentStock[type]; // 不可大於庫存
+      if (val > currentStock[type]) val = currentStock[type];
       input.value = val;
       updateStockUI();
     }
@@ -165,15 +175,17 @@
         const response = await fetch(`${API_BASE}/api/status`);
         const result = await response.json();
         if (result.success) {
-          const { transactions, isPrepared, inventory } = result.data;
+          const { transactions, isPrepared, inventory, merchantEcoContribution, merchantCarbonSaved } = result.data;
           
-          // 計算最新可用庫存 (狀態為 idle 才算在店內可用)
+          // 更新看板數據
+          document.getElementById('merchantEco').innerHTML = `${merchantEcoContribution} <span class="text-xs font-normal">個</span>`;
+          document.getElementById('merchantCarbon').innerHTML = `${merchantCarbonSaved.toFixed(2)} <span class="text-xs font-normal">kg</span>`;
+
           currentStock.CUP = inventory.filter(i => i.typeKey === 'CUP' && i.status === 'idle').length;
           currentStock.BOX = inventory.filter(i => i.typeKey === 'BOX' && i.status === 'idle').length;
           currentStock.BOWL = inventory.filter(i => i.typeKey === 'BOWL' && i.status === 'idle').length;
           updateStockUI();
 
-          // 處理 QR Code 介面刷新
           if (!isPrepared && !document.getElementById("qrSection").classList.contains("hidden")) {
             document.getElementById("qrStatus").textContent = "✓ 已完成領取";
             document.getElementById("qrStatus").classList.remove("animate-pulse");
@@ -187,7 +199,6 @@
             }, 3000);
           }
 
-          // 刷新歷史紀錄
           const historyDiv = document.getElementById("adminHistory");
           if (transactions.length > 0) {
             historyDiv.innerHTML = transactions.map(tx => `
@@ -196,10 +207,10 @@
                   <span>交易紀錄: ${tx.id}</span>
                   <span>$${tx.amount}</span>
                 </div>
-                <div class="flex justify-between font-bold text-emerald-400">
-                   <span>${tx.renterName} 的租借紀錄</span> <span>$${tx.amount}</span>
+                <div class="flex justify-between text-slate-300 mt-1">
+                   <span>租借人：${tx.renterName}</span> 
                 </div>
-                <div class="mt-2 space-y-1 text-slate-400 font-mono">
+                <div class="mt-2 space-y-1 text-slate-400 font-mono bg-slate-950/50 p-2 rounded">
                   ${tx.details.map(item => `<div>• ${item.typeName} (${item.id})</div>`).join('')}
                 </div>
                 <p class="mt-3 text-[10px] text-slate-600">${tx.date}</p>

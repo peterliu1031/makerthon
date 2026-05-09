@@ -12,7 +12,8 @@
 
     <main class="relative mx-auto flex min-h-[90vh] w-full max-w-md flex-col items-center">
       <section class="w-full rounded-3xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur">
-        <h1 class="text-xl font-bold">我的環保帳戶</h1>
+        <h1 class="text-xl font-bold">我的環保帳戶 <span class="text-xs text-slate-400 ml-2">USER_5487</span></h1>
+        
         <div class="mt-6 grid grid-cols-2 gap-4">
           <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
             <p class="text-xs text-slate-400">錢包餘額</p>
@@ -21,6 +22,14 @@
           <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
             <p class="text-xs text-slate-400">環保點數</p>
             <p id="pointsText" class="mt-2 text-2xl font-black text-emerald-400">-- 點</p>
+          </div>
+          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
+            <p class="text-xs text-slate-400">信用評分</p>
+            <p id="creditText" class="mt-2 text-2xl font-black text-blue-400">-- 分</p>
+          </div>
+          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
+            <p class="text-xs text-slate-400">累計減碳量</p>
+            <p id="carbonText" class="mt-2 text-2xl font-black text-cyan-400">-- kg</p>
           </div>
         </div>
       </section>
@@ -52,18 +61,14 @@
   <script>
     const API_BASE = window.location.origin;
     let previousTxCount = 0;
-    
-    // 【修正重點】使用 Set 記錄目前被展開的交易 ID
     let openDropdowns = new Set(); 
 
-    // 切換顯示/隱藏，並記錄到 Set 裡面
     window.toggleDetail = function(txId) {
       if (openDropdowns.has(txId)) {
         openDropdowns.delete(txId);
       } else {
         openDropdowns.add(txId);
       }
-      // 立即切換當前 DOM
       const el = document.getElementById(`detail-${txId}`);
       if (el) el.classList.toggle("hidden");
     };
@@ -76,8 +81,6 @@
         const isComp = tx.isCompleted;
         const statusColor = isComp ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" : "text-orange-400 border-orange-500/30 bg-orange-500/10";
         const statusText = isComp ? "歸還完成" : "尚未歸還完成";
-        
-        // 檢查這個交易是否在展開名單中
         const isHidden = openDropdowns.has(tx.id) ? "" : "hidden";
 
         return `
@@ -135,6 +138,10 @@
           document.getElementById("balanceText").textContent = `${d.balance} 元`;
           document.getElementById("pointsText").textContent = `${d.points} 點`;
           
+          // 【更新】信用評分與累積減碳量
+          document.getElementById("creditText").textContent = `${d.userCreditScore} 分`;
+          document.getElementById("carbonText").textContent = `${d.userCarbonSaved.toFixed(2)} kg`;
+          
           const rentBtn = document.getElementById("rentBtn");
           const statusHint = document.getElementById("statusHint");
           
@@ -150,7 +157,6 @@
             statusHint.textContent = "等待商家生成 QR Code...";
           }
 
-          // 重新渲染交易清單 (由於加入了 openDropdowns 的判斷，展開狀態不會消失)
           renderTransactions(d.transactions);
           
           if (previousTxCount > 0 && d.transactions.length > previousTxCount) {
@@ -163,12 +169,23 @@
 
     document.getElementById("rentBtn").addEventListener("click", async () => {
       const res = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
-      if ((await res.json()).success) fetchStatus();
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message); // 如果信用太低，這裡會跳出阻擋訊息
+      } else {
+        fetchStatus();
+      }
     });
 
     document.getElementById("returnBtn").addEventListener("click", async () => {
       const res = await fetch(`${API_BASE}/api/return`, { method: "POST" });
-      if ((await res.json()).success) fetchStatus();
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message); // 這裡會告訴用戶是否觸發了「冷卻期防弊」
+        fetchStatus();
+      } else {
+        alert(data.message);
+      }
     });
 
     setInterval(fetchStatus, 1500);
