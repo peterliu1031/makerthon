@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>循環容器系統 MVP - Demo</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f4f9; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; }
+        h2 { color: #2c3e50; }
+        .status-box { font-size: 1.2rem; margin: 15px 0; padding: 10px; border-radius: 8px; font-weight: bold; }
+        .idle { background: #d4edda; color: #155724; }
+        .rented { background: #f8d7da; color: #721c24; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-rent { background: #3498db; color: white; }
+        .btn-return { background: #e67e22; color: white; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .stats { display: flex; justify-content: space-around; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .stat-item { flex: 1; }
+        .label { font-size: 0.8rem; color: #7f8c8d; }
+        .value { font-size: 1.1rem; color: #2c3e50; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>使用者端 (User App)</h2>
+        <div id="statusIndicator" class="status-box idle">在庫待租借</div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="label">錢包餘額</div>
+                <div class="value" id="balance">$100</div>
+            </div>
+            <div class="stat-item">
+                <div class="label">環保點數</div>
+                <div class="value" id="points">0 pts</div>
+            </div>
+        </div>
+
+        <button id="rentBtn" class="btn btn-rent" onclick="rentCup()">確認租借 (掃碼後)</button>
+    </div>
+
+    <div class="container">
+        <h2>模擬歸還機 (Return Box)</h2>
+        <p style="font-size: 0.9rem; color: #666;">(原本為 ESP32 的功能，現以軟體模擬)</p>
+        <button id="returnBtn" class="btn btn-return" onclick="returnCup()" disabled>偵測到容器：點擊歸還</button>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:3000/api";
+
+        // 定期更新狀態 (Polling)
+        async function updateStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const result = await response.json();
+                const data = result.data;
+
+                // 更新狀態顯示
+                const statusIndicator = document.getElementById('statusIndicator');
+                if (data.cupStatus === 'idle') {
+                    statusIndicator.innerText = "在庫待租借";
+                    statusIndicator.className = "status-box idle";
+                    document.getElementById('rentBtn').disabled = false;
+                    document.getElementById('returnBtn').disabled = true;
+                } else {
+                    statusIndicator.innerText = "容器使用中";
+                    statusIndicator.className = "status-box rented";
+                    document.getElementById('rentBtn').disabled = true;
+                    document.getElementById('returnBtn').disabled = false;
+                }
+
+                // 更新錢包與點數
+                document.getElementById('balance').innerText = `$${data.userBalance}`;
+                document.getElementById('points').innerText = `${data.userPoints} pts`;
+            } catch (err) {
+                console.error("無法連接伺服器", err);
+            }
+        }
+
+        // 執行租借
+        async function rentCup() {
+            const response = await fetch(`${API_BASE}/rent`, { method: 'POST' });
+            const result = await response.json();
+            if (result.success) {
+                alert("租借成功！押金已預扣 50 元。");
+                updateStatus();
+            } else {
+                alert(result.message);
+            }
+        }
+
+        // 執行歸還 (取代 ESP32 的 HTTP POST)
+        async function returnCup() {
+            const response = await fetch(`${API_BASE}/return`, { method: 'POST' });
+            const result = await response.json();
+            if (result.success) {
+                alert("歸還成功！押金已退回，獲得 10 點獎勵！");
+                updateStatus();
+            } else {
+                alert(result.message);
+            }
+        }
+
+        // 每 2 秒自動刷新一次狀態
+        setInterval(updateStatus, 2000);
+        updateStatus(); // 初始載入
+    </script>
+</body>
+</html>
