@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 const PORT = 3000;
 
@@ -7,6 +8,8 @@ const PORT = 3000;
 app.use(cors());
 // 解析 JSON 格式的請求本體
 app.use(express.json());
+// 提供靜態檔案服務 (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, '.')));
 
 // ==========================================
 // 模擬資料庫 (MVP 狀態儲存)
@@ -51,7 +54,7 @@ app.post('/api/rent', (req, res) => {
     res.json({
         success: true,
         message: "租借成功",
-        data: { status, balance, points }
+        data: { status, balance, points, timestamp: new Date().toISOString() }
     });
 });
 
@@ -71,7 +74,7 @@ app.post('/api/return', (req, res) => {
     res.json({
         success: true,
         message: "歸還成功",
-        data: { status, balance, points }
+        data: { status, balance, points, timestamp: new Date().toISOString() }
     });
 });
 
@@ -79,7 +82,10 @@ app.post('/api/return', (req, res) => {
 // 啟動伺服器
 // ==========================================
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`環保容器後端系統已啟動！`);
-    console.log(`本機測試請訪問: http://localhost:${PORT}`);
-    console.log(`硬體連線請將 ESP32 指向這台電腦的區域網路 IP 加上 port ${PORT}`);
+    console.log(`\n🌍 環保容器後端系統已啟動！`);
+    console.log(`📱 本機測試：http://localhost:${PORT}`);
+    console.log(`🔗 遠端訪問：http://<你的電腦IP>:${PORT}`);
+    console.log(`📄 用戶端：http://localhost:${PORT}/user.html`);
+    console.log(`🏪 商家端：http://localhost:${PORT}/merchant.html`);
+    console.log(`🤖 硬體連線：將 ESP32 指向 http://<電腦IP>:${PORT}\n`);
 });
