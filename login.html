@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>註冊登入 - 環保容器循環系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_45%)] pointer-events-none"></div>
+
+  <main class="relative w-full max-w-sm rounded-3xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl backdrop-blur">
+    <div class="text-center mb-8">
+      <div class="mx-auto h-16 w-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+        <span class="text-3xl">🌱</span>
+      </div>
+      <h1 class="text-2xl font-bold text-white">環保循環系統</h1>
+      <p class="text-sm text-slate-400 mt-1">請輸入手機號碼快速登入</p>
+    </div>
+
+    <div class="space-y-5" id="step1">
+      <div>
+        <label class="text-xs text-slate-400 uppercase font-bold">手機號碼</label>
+        <input type="tel" value="0912345678" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500 transition">
+      </div>
+      <button onclick="nextStep()" class="w-full rounded-xl bg-emerald-500 py-4 font-bold text-slate-950 hover:bg-emerald-400 transition">
+        獲取驗證碼
+      </button>
+    </div>
+
+    <div class="space-y-5 hidden" id="step2">
+      <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+        <h3 class="font-bold text-emerald-400 mb-2">首次使用需預繳押金</h3>
+        <p class="text-xs text-slate-400 leading-relaxed">為了保障容器循環，免除綁定信用卡帶來的資安疑慮，我們採用「單次儲值錢包」機制。請先儲值 300 元作為循環押金。</p>
+      </div>
+      <button onclick="login()" class="w-full rounded-xl bg-cyan-500 py-4 font-bold text-slate-950 hover:bg-cyan-400 transition shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+        模擬儲值 $300 並進入系統
+      </button>
+    </div>
+  </main>
+
+  <script>
+    function nextStep() {
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step2').classList.remove('hidden');
+    }
+    function login() {
+      // 實務上這裡會呼叫 API 建立帳號並初始化餘額，Demo 直接跳轉
+      window.location.href = "user.html";
+    }
+  </script>
+</body>
+</html>

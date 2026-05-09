@@ -133,6 +133,21 @@ app.post('/api/rent', (req, res) => {
     res.json({ success: true, message: "租借成功" });
 });
 
+// 獎勵商店兌換 API
+app.post('/api/redeem', (req, res) => {
+    const { cost, itemName } = req.body;
+    
+    if (points < cost) {
+        return res.status(400).json({ success: false, message: "點數不足，無法兌換！" });
+    }
+    
+    points -= cost;
+    console.log(`[系統通知] 用戶成功兌換了 ${itemName}，扣除 ${cost} 點，剩餘 ${points} 點`);
+    
+    // 實務上可以把兌換紀錄存入資料庫，這裡直接回傳成功
+    res.json({ success: true, message: `兌換成功！已獲得「${itemName}」` });
+});
+
 app.post('/api/return', (req, res) => {
     const target = transactions.find(t => !t.isCompleted);
     if (!target) return res.status(400).json({ success: false, message: "沒有待歸還的紀錄" });
@@ -168,4 +183,5 @@ app.post('/api/return', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`✅ 伺服器已啟動: http://localhost:${PORT}`);
+    console.log(`👉 登入頁面: http://localhost:${PORT}/login.html`);
 });

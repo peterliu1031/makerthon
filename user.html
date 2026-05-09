@@ -5,77 +5,148 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>用戶端 - 環保容器循環系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes scanline {
+      0% { top: 0%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+    .animate-scan {
+      animation: scanline 2s linear infinite;
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-  <div class="relative min-h-screen px-4 py-8">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_45%)] pointer-events-none"></div>
+<body class="min-h-screen bg-slate-950 text-slate-100 relative">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_45%)] pointer-events-none"></div>
 
-    <main class="relative mx-auto flex min-h-[90vh] w-full max-w-md flex-col items-center">
-      <section class="w-full rounded-3xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur">
-        <h1 class="text-xl font-bold">我的環保帳戶 <span class="text-xs text-slate-400 ml-2">USER_5487</span></h1>
-        
-        <div class="mt-6 grid grid-cols-2 gap-4">
-          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
-            <p class="text-xs text-slate-400">錢包餘額</p>
-            <p id="balanceText" class="mt-2 text-2xl font-black text-white">-- 元</p>
-          </div>
-          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
-            <p class="text-xs text-slate-400">環保點數</p>
-            <p id="pointsText" class="mt-2 text-2xl font-black text-emerald-400">-- 點</p>
-          </div>
-          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
-            <p class="text-xs text-slate-400">信用評分</p>
-            <p id="creditText" class="mt-2 text-2xl font-black text-blue-400">-- 分</p>
-          </div>
-          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
-            <p class="text-xs text-slate-400">累計減碳量</p>
-            <p id="carbonText" class="mt-2 text-2xl font-black text-cyan-400">-- kg</p>
-          </div>
+  <main class="relative mx-auto flex min-h-[90vh] w-full max-w-md flex-col items-center px-4 py-8">
+    <section class="w-full rounded-3xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur relative overflow-hidden">
+      <div class="flex justify-between items-start relative z-10">
+        <div>
+          <h1 class="text-xl font-bold">我的環保帳戶 <span class="text-xs text-slate-400 ml-2">USER_5487</span></h1>
+          <button onclick="toggleShop()" class="mt-2 text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/30 hover:bg-emerald-500/40 transition">
+            🎁 進入獎勵商店兌換
+          </button>
         </div>
-      </section>
-
-      <section class="mt-8 w-full text-center">
-        <button id="rentBtn" class="w-full rounded-2xl bg-emerald-500 py-5 text-lg font-black text-slate-950 transition-all hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-600">
-          <span id="rentBtnText">掃碼租借</span>
-        </button>
-        <p id="statusHint" class="mt-4 text-sm text-slate-400">等待商家生成 QR Code...</p>
-        
-        <button id="returnBtn" class="mt-4 w-full rounded-2xl border border-slate-700 py-3 text-sm font-bold text-slate-400 hover:bg-slate-800">
-          模擬歸還 (測試按鈕)
-        </button>
-      </section>
-
-      <section class="mt-10 w-full">
-        <h2 class="text-lg font-bold mb-4 border-l-4 border-emerald-500 pl-3">交易紀錄與詳情</h2>
-        <div id="transactionList" class="space-y-4">
-          <p class="text-center text-slate-600 text-sm py-10">尚無交易紀錄</p>
+      </div>
+      
+      <div class="mt-6 grid grid-cols-2 gap-4 relative z-10">
+        <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
+          <p class="text-xs text-slate-400">錢包餘額</p>
+          <p id="balanceText" class="mt-2 text-2xl font-black text-white">-- 元</p>
         </div>
-      </section>
+        <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
+          <p class="text-xs text-slate-400">環保點數</p>
+          <p id="pointsText" class="mt-2 text-2xl font-black text-emerald-400">-- 點</p>
+        </div>
+        <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
+          <p class="text-xs text-slate-400">信用評分</p>
+          <p id="creditText" class="mt-2 text-2xl font-black text-blue-400">-- 分</p>
+        </div>
+        <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
+          <p class="text-xs text-slate-400">累計減碳量</p>
+          <p id="carbonText" class="mt-2 text-2xl font-black text-cyan-400">-- kg</p>
+        </div>
+      </div>
+    </section>
 
-      <footer class="mt-auto pt-8 text-center text-[10px] text-slate-600 uppercase tracking-widest">
-        Circular System MVP • 2026 Northern Taiwan Hackathon
-      </footer>
-    </main>
+    <section class="mt-8 w-full text-center">
+      <div id="cameraMockup" class="hidden mb-4 w-full h-48 bg-slate-900 border-2 border-dashed border-slate-600 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center">
+        <div class="absolute w-full h-1 bg-emerald-400 shadow-[0_0_10px_#34d399] animate-scan"></div>
+        <p class="text-slate-400 text-sm animate-pulse">正在掃描商家 QR Code...</p>
+      </div>
+
+      <button id="rentBtn" class="w-full rounded-2xl bg-emerald-500 py-5 text-lg font-black text-slate-950 transition-all hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-600">
+        <span id="rentBtnText">掃碼租借</span>
+      </button>
+      <p id="statusHint" class="mt-4 text-sm text-slate-400">等待商家生成 QR Code...</p>
+      
+      <button id="returnBtn" class="mt-4 w-full rounded-2xl border border-slate-700 py-3 text-sm font-bold text-slate-400 hover:bg-slate-800">
+        模擬歸還容器 (測試按鈕)
+      </button>
+    </section>
+
+    <section class="mt-10 w-full">
+      <h2 class="text-lg font-bold mb-4 border-l-4 border-emerald-500 pl-3">交易紀錄與詳情</h2>
+      <div id="transactionList" class="space-y-4"></div>
+    </section>
+  </main>
+
+  <div id="shopModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-sm p-6 shadow-2xl">
+      <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+        <h2 class="text-xl font-bold text-emerald-400">🎁 獎勵兌換商店</h2>
+        <button onclick="toggleShop()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+      </div>
+      
+      <div class="space-y-4">
+        <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-white">5 元現金折扣券</h3>
+            <p class="text-xs text-slate-400 mt-1">適用於所有合作商家</p>
+          </div>
+          <button onclick="redeemReward(50, '5 元現金折扣券')" class="bg-cyan-500 text-slate-950 font-bold px-4 py-2 rounded-xl hover:bg-cyan-400 text-sm">
+            50 點
+          </button>
+        </div>
+        
+        <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-white">免費租借券 x1</h3>
+            <p class="text-xs text-slate-400 mt-1">抵扣一次租借押金手續</p>
+          </div>
+          <button onclick="redeemReward(100, '免費租借券')" class="bg-cyan-500 text-slate-950 font-bold px-4 py-2 rounded-xl hover:bg-cyan-400 text-sm">
+            100 點
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     const API_BASE = window.location.origin;
-    let previousTxCount = 0;
     let openDropdowns = new Set(); 
 
-    window.toggleDetail = function(txId) {
-      if (openDropdowns.has(txId)) {
-        openDropdowns.delete(txId);
-      } else {
-        openDropdowns.add(txId);
+    // 商店開關邏輯
+    function toggleShop() {
+      document.getElementById('shopModal').classList.toggle('hidden');
+    }
+
+    // 兌換獎品 API 呼叫
+    async function redeemReward(cost, itemName) {
+      try {
+        const response = await fetch(`${API_BASE}/api/redeem`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cost, itemName })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+          alert(`🎉 ${result.message}`);
+          fetchStatus(); // 刷新點數
+        } else {
+          alert(`❌ ${result.message}`);
+        }
+      } catch (e) {
+        alert("網路連線錯誤");
       }
+    }
+
+    window.toggleDetail = function(txId) {
+      if (openDropdowns.has(txId)) openDropdowns.delete(txId);
+      else openDropdowns.add(txId);
       const el = document.getElementById(`detail-${txId}`);
       if (el) el.classList.toggle("hidden");
     };
 
     function renderTransactions(transactions) {
       const list = document.getElementById("transactionList");
-      if (transactions.length === 0) return;
+      if (transactions.length === 0) {
+        list.innerHTML = '<p class="text-center text-slate-600 text-sm py-10">尚無交易紀錄</p>';
+        return;
+      }
 
       list.innerHTML = transactions.map(tx => {
         const isComp = tx.isCompleted;
@@ -137,55 +208,63 @@
           const d = result.data;
           document.getElementById("balanceText").textContent = `${d.balance} 元`;
           document.getElementById("pointsText").textContent = `${d.points} 點`;
-          
-          // 【更新】信用評分與累積減碳量
           document.getElementById("creditText").textContent = `${d.userCreditScore} 分`;
           document.getElementById("carbonText").textContent = `${d.userCarbonSaved.toFixed(2)} kg`;
           
           const rentBtn = document.getElementById("rentBtn");
           const statusHint = document.getElementById("statusHint");
           
-          if (d.isPrepared) {
-            rentBtn.disabled = false;
-            rentBtn.classList.replace("bg-emerald-500", "bg-cyan-400");
-            document.getElementById("rentBtnText").textContent = "確認領取容器";
-            statusHint.textContent = "商家已準備好，請點擊確認租借";
-          } else {
-            rentBtn.disabled = true;
-            rentBtn.classList.replace("bg-cyan-400", "bg-emerald-500");
-            document.getElementById("rentBtnText").textContent = "掃碼租借";
-            statusHint.textContent = "等待商家生成 QR Code...";
+          // 如果正在播放相機動畫，就不更新按鈕狀態以免閃爍
+          if (document.getElementById('cameraMockup').classList.contains('hidden')) {
+            if (d.isPrepared) {
+              rentBtn.disabled = false;
+              rentBtn.classList.replace("bg-emerald-500", "bg-cyan-400");
+              document.getElementById("rentBtnText").textContent = "掃描商家 QR Code";
+              statusHint.textContent = "商家已準備好，請掃碼";
+            } else {
+              rentBtn.disabled = true;
+              rentBtn.classList.replace("bg-cyan-400", "bg-emerald-500");
+              document.getElementById("rentBtnText").textContent = "相機尚未開啟";
+              statusHint.textContent = "等待商家生成 QR Code...";
+            }
           }
 
           renderTransactions(d.transactions);
-          
-          if (previousTxCount > 0 && d.transactions.length > previousTxCount) {
-             alert("租借成功！");
-          }
-          previousTxCount = d.transactions.length;
         }
       } catch (e) { console.error("同步失敗", e); }
     }
 
-    document.getElementById("rentBtn").addEventListener("click", async () => {
-      const res = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
-      const data = await res.json();
-      if (!data.success) {
-        alert(data.message); // 如果信用太低，這裡會跳出阻擋訊息
-      } else {
-        fetchStatus();
-      }
+    // 掃碼按鈕邏輯：加入假相機掃描延遲
+    document.getElementById("rentBtn").addEventListener("click", () => {
+      const camera = document.getElementById('cameraMockup');
+      const rentBtn = document.getElementById('rentBtn');
+      
+      // 顯示假相機
+      camera.classList.remove('hidden');
+      rentBtn.classList.add('hidden');
+      
+      // 模擬掃描過程 1.5 秒
+      setTimeout(async () => {
+        const res = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
+        const data = await res.json();
+        
+        // 隱藏相機，恢復按鈕
+        camera.classList.add('hidden');
+        rentBtn.classList.remove('hidden');
+
+        if (!data.success) {
+          alert(data.message);
+        } else {
+          fetchStatus();
+        }
+      }, 1500);
     });
 
     document.getElementById("returnBtn").addEventListener("click", async () => {
       const res = await fetch(`${API_BASE}/api/return`, { method: "POST" });
       const data = await res.json();
-      if (data.success) {
-        alert(data.message); // 這裡會告訴用戶是否觸發了「冷卻期防弊」
-        fetchStatus();
-      } else {
-        alert(data.message);
-      }
+      alert(data.message);
+      fetchStatus();
     });
 
     setInterval(fetchStatus, 1500);
