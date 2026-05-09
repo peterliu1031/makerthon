@@ -12,77 +12,65 @@
     <section class="lg:col-span-2 space-y-6">
       <div class="rounded-2xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl backdrop-blur">
         <h1 class="text-2xl font-bold tracking-wide">容器租借發行</h1>
-        <p class="mt-2 text-sm text-slate-400">選擇種類與數量以生成 QR Code</p>
+        <p class="mt-2 text-sm text-slate-400">請設定本次租借的容器種類與數量</p>
 
-        <div class="mt-8 space-y-8">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-4 rounded-xl bg-slate-800/30 border border-slate-800">
+        <div class="mt-8 space-y-4">
+          <div class="flex items-center justify-between p-4 rounded-xl bg-slate-800/30 border border-slate-800">
             <div>
-              <p class="font-bold text-lg">環保杯</p>
-              <p class="text-xs text-slate-500">Prefix: 100</p>
+              <p class="font-bold text-lg text-emerald-400">環保杯</p>
+              <p class="text-[10px] text-slate-500 font-mono">Type ID: 001</p>
             </div>
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
-                <button onclick="changeQty('CUP', -1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">-</button>
-                <input type="number" id="qty-CUP" value="0" min="0" class="w-16 bg-slate-950 text-center py-2 rounded-md border border-slate-700 focus:ring-1 focus:ring-cyan-500 outline-none" onchange="validateInput('CUP')">
-                <button onclick="changeQty('CUP', 1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">+</button>
+                <button onclick="changeQty('CUP', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
+                <input type="number" id="qty-CUP" value="0" min="0" readonly class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <button onclick="changeQty('CUP', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
-            <div class="text-right">
-              <p class="text-xs text-slate-400">庫存狀況</p>
-              <p class="text-sm font-medium">
-                目前: <span id="stock-CUP">--</span> | 
-                剩餘: <span id="remain-CUP" class="text-cyan-400">--</span>
-              </p>
+            <div class="text-right w-24">
+              <p class="text-[10px] text-slate-500">當前庫存: <span id="stock-CUP" class="font-bold text-white">0</span></p>
+              <p class="text-xs mt-1">剩餘預估: <span id="remain-CUP" class="font-bold text-emerald-400">0</span></p>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-4 rounded-xl bg-slate-800/30 border border-slate-800">
+          <div class="flex items-center justify-between p-4 rounded-xl bg-slate-800/30 border border-slate-800">
             <div>
-              <p class="font-bold text-lg">環保餐盒</p>
-              <p class="text-xs text-slate-500">Prefix: 200</p>
+              <p class="font-bold text-lg text-cyan-400">環保餐盒</p>
+              <p class="text-[10px] text-slate-500 font-mono">Type ID: 002</p>
             </div>
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
-                <button onclick="changeQty('BOX', -1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">-</button>
-                <input type="number" id="qty-BOX" value="0" min="0" class="w-16 bg-slate-950 text-center py-2 rounded-md border border-slate-700 focus:ring-1 focus:ring-cyan-500 outline-none" onchange="validateInput('BOX')">
-                <button onclick="changeQty('BOX', 1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">+</button>
+                <button onclick="changeQty('BOX', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
+                <input type="number" id="qty-BOX" value="0" min="0" readonly class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <button onclick="changeQty('BOX', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
-            <div class="text-right">
-              <p class="text-xs text-slate-400">庫存狀況</p>
-              <p class="text-sm font-medium">
-                目前: <span id="stock-BOX">--</span> | 
-                剩餘: <span id="remain-BOX" class="text-cyan-400">--</span>
-              </p>
+            <div class="text-right w-24">
+              <p class="text-[10px] text-slate-500">當前庫存: <span id="stock-BOX" class="font-bold text-white">0</span></p>
+              <p class="text-xs mt-1">剩餘預估: <span id="remain-BOX" class="font-bold text-cyan-400">0</span></p>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-4 rounded-xl bg-slate-800/30 border border-slate-800">
+          <div class="flex items-center justify-between p-4 rounded-xl bg-slate-800/30 border border-slate-800">
             <div>
-              <p class="font-bold text-lg">環保碗</p>
-              <p class="text-xs text-slate-500">Prefix: 300</p>
+              <p class="font-bold text-lg text-orange-400">環保碗</p>
+              <p class="text-[10px] text-slate-500 font-mono">Type ID: 003</p>
             </div>
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
-                <button onclick="changeQty('BOWL', -1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">-</button>
-                <input type="number" id="qty-BOWL" value="0" min="0" class="w-16 bg-slate-950 text-center py-2 rounded-md border border-slate-700 focus:ring-1 focus:ring-cyan-500 outline-none" onchange="validateInput('BOWL')">
-                <button onclick="changeQty('BOWL', 1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">+</button>
+                <button onclick="changeQty('BOWL', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
+                <input type="number" id="qty-BOWL" value="0" min="0" readonly class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <button onclick="changeQty('BOWL', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
-            <div class="text-right">
-              <p class="text-xs text-slate-400">庫存狀況</p>
-              <p class="text-sm font-medium">
-                目前: <span id="stock-BOWL">--</span> | 
-                剩餘: <span id="remain-BOWL" class="text-cyan-400">--</span>
-              </p>
+            <div class="text-right w-24">
+              <p class="text-[10px] text-slate-500">當前庫存: <span id="stock-BOWL" class="font-bold text-white">0</span></p>
+              <p class="text-xs mt-1">剩餘預估: <span id="remain-BOWL" class="font-bold text-orange-400">0</span></p>
             </div>
           </div>
         </div>
 
-        <button
-          id="generateBtn"
-          class="mt-10 w-full rounded-xl bg-cyan-500 py-4 text-lg font-bold text-slate-950 transition hover:bg-cyan-400 disabled:bg-slate-700 disabled:text-slate-500"
-        >
+        <button id="generateBtn" class="mt-8 w-full rounded-xl bg-emerald-500 py-4 text-lg font-bold text-slate-950 hover:bg-emerald-400 transition disabled:bg-slate-700">
           生成租借 QR Code
         </button>
 
@@ -90,139 +78,54 @@
           <div class="inline-block bg-white p-3 rounded-xl shadow-lg">
             <img id="qrImage" src="" alt="QRCode">
           </div>
-          <p id="qrStatus" class="mt-4 text-emerald-400 font-medium animate-pulse">等待用戶掃描...</p>
+          <p id="qrStatus" class="mt-4 text-emerald-400 font-medium animate-pulse">等待用戶領取...</p>
         </div>
       </div>
     </section>
 
-    <section class="lg:col-span-1 space-y-6">
-      <div class="rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur h-full flex flex-col">
-        <h2 class="text-xl font-bold border-b border-slate-800 pb-4">即時出借紀錄</h2>
-        <div id="rentedList" class="mt-4 space-y-4 overflow-y-auto flex-1 pr-1">
-          <p class="text-slate-500 text-sm italic">同步中...</p>
+    <section class="space-y-6">
+      <div class="rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur h-full">
+        <h2 class="text-lg font-bold border-b border-slate-800 pb-4 italic">即時出借紀錄清單</h2>
+        <div id="adminHistory" class="mt-4 space-y-4 max-h-[600px] overflow-y-auto">
+          <p class="text-slate-600 text-xs italic text-center py-10">尚無歷史出借資料</p>
         </div>
       </div>
     </section>
-
   </div>
 
   <script>
-    const API_BASE = "http://localhost:3000";
-    let currentInventory = [];
-    let stockCount = { CUP: 0, BOX: 0, BOWL: 0 };
+    const API_BASE = window.location.origin;
+    let currentStock = { CUP: 0, BOX: 0, BOWL: 0 };
 
-    // 初始化/同步數據
-    async function syncData() {
-      try {
-        const response = await fetch(`${API_BASE}/api/admin/inventory`);
-        const result = await response.json();
-
-        if (result.success) {
-          const { inventory, pendingOrder } = result.data;
-          currentInventory = inventory;
-
-          // 更新各類別庫存數 (status 為 idle 的才算可用庫存)
-          stockCount.CUP = inventory.filter(i => i.typeKey === 'CUP' && i.status === 'idle').length;
-          stockCount.BOX = inventory.filter(i => i.typeKey === 'BOX' && i.status === 'idle').length;
-          stockCount.BOWL = inventory.filter(i => i.typeKey === 'BOWL' && i.status === 'idle').length;
-
-          updateStockUI();
-          updateRentedList(inventory);
-          handleQRStatus(pendingOrder);
-        }
-      } catch (e) {
-        console.error("同步失敗", e);
-      }
-    }
-
-    // 更新 UI 上的庫存數字
     function updateStockUI() {
       ['CUP', 'BOX', 'BOWL'].forEach(type => {
-        const stockEl = document.getElementById(`stock-${type}`);
+        const selected = parseInt(document.getElementById(`qty-${type}`).value) || 0;
+        const remain = currentStock[type] - selected;
+        
+        document.getElementById(`stock-${type}`).textContent = currentStock[type];
         const remainEl = document.getElementById(`remain-${type}`);
-        const inputEl = document.getElementById(`qty-${type}`);
-        const selectQty = parseInt(inputEl.value) || 0;
-
-        stockEl.textContent = stockCount[type];
-        const remaining = stockCount[type] - selectQty;
-        remainEl.textContent = remaining;
-
-        // 如果選超過庫存，標紅警告
-        if (remaining < 0) {
-          remainEl.className = "text-red-500 font-bold";
+        remainEl.textContent = remain;
+        
+        if (remain < 0) {
+            remainEl.className = "font-bold text-red-500";
         } else {
-          remainEl.className = "text-cyan-400";
+            remainEl.className = "font-bold text-slate-300";
         }
       });
     }
 
-    // 數量增減控制
     function changeQty(type, delta) {
       const input = document.getElementById(`qty-${type}`);
-      let val = (parseInt(input.value) || 0) + delta;
+      let val = parseInt(input.value) + delta;
       
+      // 不能低於 0，也不能高於目前庫存
       if (val < 0) val = 0;
-      // 限制不能點超過目前店內擁有的庫存
-      if (val > stockCount[type]) val = stockCount[type];
+      if (val > currentStock[type]) val = currentStock[type];
       
       input.value = val;
       updateStockUI();
     }
 
-    // 直接輸入後的驗證
-    function validateInput(type) {
-      const input = document.getElementById(`qty-${type}`);
-      let val = parseInt(input.value) || 0;
-      if (val < 0) val = 0;
-      if (val > stockCount[type]) val = stockCount[type];
-      input.value = val;
-      updateStockUI();
-    }
-
-    // 更新右側紀錄清單
-    function updateRentedList(inventory) {
-      const rentedList = document.getElementById("rentedList");
-      const rentedItems = inventory.filter(i => i.status === "rented");
-      
-      if (rentedItems.length === 0) {
-        rentedList.innerHTML = `<p class="text-slate-500 text-sm italic">目前無出借紀錄</p>`;
-        return;
-      }
-
-      rentedList.innerHTML = rentedItems.map(item => `
-        <div class="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 hover:border-cyan-500/30 transition">
-          <div class="flex justify-between items-start mb-2">
-            <span class="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold">${item.type}</span>
-            <span class="text-[10px] text-slate-500 font-mono">${item.rentedDate.split(' ')[1]}</span>
-          </div>
-          <p class="text-sm font-mono text-slate-200">${item.id}</p>
-          <p class="mt-1 text-[11px] text-slate-500">租借人：${item.rentedBy}</p>
-        </div>
-      `).join('');
-    }
-
-    // 處理 QR Code 狀態刷新
-    function handleQRStatus(pendingOrder) {
-      const qrSection = document.getElementById("qrSection");
-      const generateBtn = document.getElementById("generateBtn");
-      const qrStatus = document.getElementById("qrStatus");
-
-      if (!pendingOrder.isPrepared && !qrSection.classList.contains("hidden")) {
-        qrStatus.textContent = "✓ 已完成領取";
-        qrStatus.className = "mt-4 text-cyan-400 font-bold";
-        qrStatus.classList.remove("animate-pulse");
-        
-        setTimeout(() => {
-          qrSection.classList.add("hidden");
-          generateBtn.disabled = false;
-          // 重置所有輸入
-          document.querySelectorAll('input[type="number"]').forEach(i => i.value = 0);
-          updateStockUI();
-        }, 3000);
-      }
-    }
-
-    // 送出準備請求
     document.getElementById("generateBtn").addEventListener("click", async () => {
       const payload = {
         CUP: parseInt(document.getElementById("qty-CUP").value),
@@ -230,35 +133,72 @@
         BOWL: parseInt(document.getElementById("qty-BOWL").value)
       };
 
-      if (Object.values(payload).reduce((a, b) => a + b, 0) === 0) {
-        alert("請選擇容器數量");
-        return;
-      }
+      if (Object.values(payload).every(v => v === 0)) return alert("請至少選擇一個容器數量");
 
-      try {
-        const response = await fetch(`${API_BASE}/api/prepare`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const res = await response.json();
+      const response = await fetch(`${API_BASE}/api/prepare`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        if (res.success) {
-          const qrData = encodeURIComponent(`rent_order_${Date.now()}`);
-          document.getElementById("qrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}`;
-          document.getElementById("qrSection").classList.remove("hidden");
-          document.getElementById("generateBtn").disabled = true;
-          document.getElementById("qrStatus").textContent = "等待用戶掃描...";
-        } else {
-          alert(res.message);
-        }
-      } catch (e) {
-        alert("連線後端失敗");
+      const res = await response.json();
+      if (res.success) {
+        document.getElementById("qrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=RENT_ORDER`;
+        document.getElementById("qrSection").classList.remove("hidden");
+        document.getElementById("generateBtn").disabled = true;
+      } else {
+        alert(res.message);
       }
     });
 
-    setInterval(syncData, 1500);
-    syncData();
+    async function syncAdmin() {
+      try {
+        const response = await fetch(`${API_BASE}/api/status`);
+        const result = await response.json();
+        if (result.success) {
+          const { transactions, isPrepared, inventory } = result.data;
+          
+          // 計算最新可用庫存 (狀態為 idle 才算在店內可用)
+          currentStock.CUP = inventory.filter(i => i.typeKey === 'CUP' && i.status === 'idle').length;
+          currentStock.BOX = inventory.filter(i => i.typeKey === 'BOX' && i.status === 'idle').length;
+          currentStock.BOWL = inventory.filter(i => i.typeKey === 'BOWL' && i.status === 'idle').length;
+          updateStockUI();
+
+          // 處理 QR Code 介面刷新
+          if (!isPrepared && !document.getElementById("qrSection").classList.contains("hidden")) {
+            document.getElementById("qrStatus").textContent = "✓ 已完成領取";
+            document.getElementById("qrStatus").classList.remove("animate-pulse");
+            setTimeout(() => {
+              document.getElementById("qrSection").classList.add("hidden");
+              document.getElementById("generateBtn").disabled = false;
+              document.getElementById("qrStatus").textContent = "等待用戶領取...";
+              document.getElementById("qrStatus").classList.add("animate-pulse");
+              document.querySelectorAll('input[type="number"]').forEach(i => i.value = 0);
+              updateStockUI();
+            }, 3000);
+          }
+
+          // 刷新歷史紀錄
+          const historyDiv = document.getElementById("adminHistory");
+          if (transactions.length > 0) {
+            historyDiv.innerHTML = transactions.map(tx => `
+              <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700 text-xs">
+                <div class="flex justify-between font-bold text-emerald-400">
+                  <span>交易紀錄: ${tx.id}</span>
+                  <span>$${tx.amount}</span>
+                </div>
+                <div class="mt-2 space-y-1 text-slate-400 font-mono">
+                  ${tx.details.map(item => `<div>• ${item.typeName} (${item.id})</div>`).join('')}
+                </div>
+                <p class="mt-3 text-[10px] text-slate-600">${tx.date}</p>
+              </div>
+            `).join('');
+          }
+        }
+      } catch (e) { console.error("同步失敗", e); }
+    }
+
+    setInterval(syncAdmin, 1500);
   </script>
 </body>
 </html>

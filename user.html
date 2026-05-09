@@ -8,147 +8,169 @@
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100">
   <div class="relative min-h-screen px-4 py-8">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.2),_transparent_45%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_45%)] pointer-events-none"></div>
 
-    <main class="relative mx-auto flex min-h-[90vh] w-full max-w-xl flex-col items-center">
-      <section class="w-full rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-xl backdrop-blur">
-        <h1 class="text-xl font-bold">我的帳戶</h1>
-        <p class="mt-1 text-sm text-slate-400">環保容器循環系統 MVP</p>
-        <div class="mt-5 grid grid-cols-2 gap-4">
-          <div class="rounded-xl bg-slate-800/80 p-4">
-            <p class="text-sm text-slate-400">餘額</p>
-            <p id="balanceText" class="mt-2 text-2xl font-semibold text-cyan-300">載入中...</p>
+    <main class="relative mx-auto flex min-h-[90vh] w-full max-w-md flex-col items-center">
+      <section class="w-full rounded-3xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur">
+        <h1 class="text-xl font-bold">我的環保帳戶</h1>
+        <div class="mt-6 grid grid-cols-2 gap-4">
+          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
+            <p class="text-xs text-slate-400">錢包餘額</p>
+            <p id="balanceText" class="mt-2 text-2xl font-black text-white">-- 元</p>
           </div>
-          <div class="rounded-xl bg-slate-800/80 p-4">
-            <p class="text-sm text-slate-400">環保點數</p>
-            <p id="pointsText" class="mt-2 text-2xl font-semibold text-emerald-300">載入中...</p>
+          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
+            <p class="text-xs text-slate-400">環保點數</p>
+            <p id="pointsText" class="mt-2 text-2xl font-black text-emerald-400">-- 點</p>
           </div>
         </div>
       </section>
 
-      <section class="mt-12 w-full text-center">
-        <button
-          id="rentBtn"
-          class="w-full rounded-2xl bg-emerald-500 py-6 text-xl font-bold text-slate-950 transition-all hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          等待商家生成
+      <section class="mt-8 w-full text-center">
+        <button id="rentBtn" class="w-full rounded-2xl bg-emerald-500 py-5 text-lg font-black text-slate-950 transition-all hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-600">
+          <span id="rentBtnText">掃碼租借</span>
         </button>
-        <p id="statusHint" class="mt-4 text-sm text-slate-400">請等待商家準備 QR Code</p>
+        <p id="statusHint" class="mt-4 text-sm text-slate-400">等待商家生成 QR Code...</p>
+        
+        <button id="returnBtn" class="mt-4 w-full rounded-2xl border border-slate-700 py-3 text-sm font-bold text-slate-400 hover:bg-slate-800">
+          模擬歸還 (測試按鈕)
+        </button>
       </section>
 
-      <section id="returnSection" class="mt-8 hidden w-full">
-        <button
-          id="returnBtn"
-          class="w-full rounded-2xl bg-orange-500 py-4 text-lg font-bold text-white shadow-lg hover:bg-orange-400"
-        >
-          模擬歸還 (軟體觸發)
-        </button>
-        <p class="mt-2 text-center text-xs text-slate-500">偵測到容器靠近...點擊確認歸還</p>
+      <section class="mt-10 w-full">
+        <h2 class="text-lg font-bold mb-4 border-l-4 border-emerald-500 pl-3">交易紀錄與詳情</h2>
+        <div id="transactionList" class="space-y-4">
+          <p class="text-center text-slate-600 text-sm py-10">尚無交易紀錄</p>
+        </div>
       </section>
+
+      <footer class="mt-auto pt-8 text-center text-[10px] text-slate-600 uppercase tracking-widest">
+        Circular System MVP • 2026 Northern Taiwan Hackathon
+      </footer>
     </main>
   </div>
 
-  <div id="returnToast" class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
-    <div id="returnToastCard" class="mx-4 w-full max-w-md scale-95 rounded-2xl border border-emerald-300/40 bg-emerald-500/90 p-6 text-center text-slate-950 shadow-2xl transition-transform duration-300">
-      <p class="text-2xl font-extrabold">歸還成功！</p>
-      <p class="mt-2 text-base font-semibold">退回押金 50 元，獲得點數 10 點</p>
-    </div>
-  </div>
-
   <script>
-    const API_BASE = "http://localhost:3000";
-    const rentBtn = document.getElementById("rentBtn");
-    const balanceText = document.getElementById("balanceText");
-    const pointsText = document.getElementById("pointsText");
-    const statusHint = document.getElementById("statusHint");
-    const returnSection = document.getElementById("returnSection");
-    const returnBtn = document.getElementById("returnBtn");
-    const returnToast = document.getElementById("returnToast");
-    const returnToastCard = document.getElementById("returnToastCard");
+    const API_BASE = window.location.origin;
+    let previousTxCount = 0;
+    
+    // 【修正重點】使用 Set 記錄目前被展開的交易 ID
+    let openDropdowns = new Set(); 
 
-    let previousStatus = null;
-
-    // 更新介面 UI 狀態
-    function updateUI(status, isPrepared) {
-      if (status === "rented") {
-        rentBtn.disabled = true;
-        rentBtn.textContent = "借用中";
-        statusHint.textContent = "目前容器借用中，等待歸還";
-        returnSection.classList.remove("hidden");
+    // 切換顯示/隱藏，並記錄到 Set 裡面
+    window.toggleDetail = function(txId) {
+      if (openDropdowns.has(txId)) {
+        openDropdowns.delete(txId);
       } else {
-        returnSection.classList.add("hidden");
-        if (isPrepared) {
-          rentBtn.disabled = false;
-          rentBtn.textContent = "點擊租借";
-          statusHint.textContent = "商家已準備好，可領取環保容器";
-          statusHint.classList.add("text-emerald-400");
-        } else {
-          rentBtn.disabled = true;
-          rentBtn.textContent = "等待商家生成";
-          statusHint.textContent = "請等待商家準備 QR Code";
-          statusHint.classList.remove("text-emerald-400");
-        }
+        openDropdowns.add(txId);
       }
-    }
+      // 立即切換當前 DOM
+      const el = document.getElementById(`detail-${txId}`);
+      if (el) el.classList.toggle("hidden");
+    };
 
-    function showReturnSuccessEffect() {
-      returnToast.classList.replace("opacity-0", "opacity-100");
-      returnToastCard.classList.replace("scale-95", "scale-100");
-      setTimeout(() => {
-        returnToast.classList.replace("opacity-100", "opacity-0");
-        returnToastCard.classList.replace("scale-100", "scale-95");
-      }, 2400);
+    function renderTransactions(transactions) {
+      const list = document.getElementById("transactionList");
+      if (transactions.length === 0) return;
+
+      list.innerHTML = transactions.map(tx => {
+        const isComp = tx.isCompleted;
+        const statusColor = isComp ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" : "text-orange-400 border-orange-500/30 bg-orange-500/10";
+        const statusText = isComp ? "歸還完成" : "尚未歸還完成";
+        
+        // 檢查這個交易是否在展開名單中
+        const isHidden = openDropdowns.has(tx.id) ? "" : "hidden";
+
+        return `
+          <div class="rounded-2xl border border-slate-700 bg-slate-900/90 overflow-hidden shadow-lg">
+            <button onclick="toggleDetail('${tx.id}')" class="w-full p-5 text-left flex justify-between items-start hover:bg-slate-800/50 transition">
+              <div>
+                <h3 class="font-bold text-base text-white">${tx.merchantName}</h3>
+                <p class="text-[10px] text-slate-500 mt-1">${tx.date}</p>
+                <div class="mt-3 flex gap-4">
+                  <div>
+                    <p class="text-[10px] text-slate-500 uppercase">交易金額</p>
+                    <p class="text-sm font-bold text-emerald-400">$${tx.amount}</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-slate-500 uppercase">應歸還日期</p>
+                    <p class="text-sm font-bold text-slate-200">${tx.deadline}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <span class="px-2 py-1 rounded-md border text-[10px] font-bold ${statusColor}">${statusText}</span>
+                <span class="text-slate-600 text-xs">詳情 ▼</span>
+              </div>
+            </button>
+
+            <div id="detail-${tx.id}" class="${isHidden} bg-slate-950/50 border-t border-slate-800 p-5 space-y-4">
+              ${tx.details.map(item => `
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-bold text-white">${item.typeName}</span>
+                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${item.id}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500">
+                      ${item.isReturned ? `歸還日期: ${item.returnDate}` : `歸還期限: ${tx.deadline}`}
+                    </p>
+                  </div>
+                  <span class="text-xs font-bold ${item.isReturned ? 'text-emerald-500' : 'text-orange-500'}">
+                    ${item.isReturned ? '已歸還' : '使用中'}
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     async function fetchStatus() {
       try {
         const response = await fetch(`${API_BASE}/api/status`);
         const result = await response.json();
-
         if (result.success) {
-          const d = result.data; // 使用統一的變數名稱
-          balanceText.textContent = `${d.balance} 元`;
-          pointsText.textContent = `${d.points} 點`;
+          const d = result.data;
+          document.getElementById("balanceText").textContent = `${d.balance} 元`;
+          document.getElementById("pointsText").textContent = `${d.points} 點`;
           
-          updateUI(d.status, d.isPrepared);
+          const rentBtn = document.getElementById("rentBtn");
+          const statusHint = document.getElementById("statusHint");
           
-          if (previousStatus === "rented" && d.status === "idle") {
-            showReturnSuccessEffect();
+          if (d.isPrepared) {
+            rentBtn.disabled = false;
+            rentBtn.classList.replace("bg-emerald-500", "bg-cyan-400");
+            document.getElementById("rentBtnText").textContent = "確認領取容器";
+            statusHint.textContent = "商家已準備好，請點擊確認租借";
+          } else {
+            rentBtn.disabled = true;
+            rentBtn.classList.replace("bg-cyan-400", "bg-emerald-500");
+            document.getElementById("rentBtnText").textContent = "掃碼租借";
+            statusHint.textContent = "等待商家生成 QR Code...";
           }
-          previousStatus = d.status;
+
+          // 重新渲染交易清單 (由於加入了 openDropdowns 的判斷，展開狀態不會消失)
+          renderTransactions(d.transactions);
+          
+          if (previousTxCount > 0 && d.transactions.length > previousTxCount) {
+             alert("租借成功！");
+          }
+          previousTxCount = d.transactions.length;
         }
-      } catch (error) {
-        console.error("狀態更新失敗:", error);
-      }
+      } catch (e) { console.error("同步失敗", e); }
     }
 
-    rentBtn.addEventListener("click", async () => {
-      try {
-        const response = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
-        const res = await response.json();
-
-        if (res.success) {
-          alert("租借成功，已扣除押金 50 元");
-          fetchStatus();
-        } else {
-          alert(res.message);
-        }
-      } catch (error) {
-        alert("租借請求失敗，請檢查伺服器連線");
-      }
+    document.getElementById("rentBtn").addEventListener("click", async () => {
+      const res = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
+      if ((await res.json()).success) fetchStatus();
     });
 
-    returnBtn.addEventListener("click", async () => {
-      try {
-        const response = await fetch(`${API_BASE}/api/return`, { method: "POST" });
-        const res = await response.json();
-        if (res.success) fetchStatus();
-      } catch (error) {
-        alert("歸還請求失敗");
-      }
+    document.getElementById("returnBtn").addEventListener("click", async () => {
+      const res = await fetch(`${API_BASE}/api/return`, { method: "POST" });
+      if ((await res.json()).success) fetchStatus();
     });
 
-    fetchStatus();
     setInterval(fetchStatus, 1500);
   </script>
 </body>

@@ -1,172 +1,150 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '.')));
 
 // ==========================================
-// 1. 數據存儲結構：容器池
+// 1. 模擬資料庫與真實庫存系統
 // ==========================================
-// 容器類型定義
-const CONTAINER_TYPES = {
-  CUP: { label: "環保杯", prefix: "100" },
-  BOX: { label: "環保餐盒", prefix: "200" },
-  BOWL: { label: "環保碗", prefix: "300" }
-};
-
-// 初始化容器資料 (每個種類各 4 個)
+let balance = 300;
+let points = 0;
+let isPrepared = false;
+let pendingItems = []; 
+let transactions = [];
 let inventory = [];
 
+// 容器類型設定
+const TYPES = {
+    CUP:  { code: '001', name: '環保杯' },
+    BOX:  { code: '002', name: '環保餐盒' },
+    BOWL: { code: '003', name: '環保碗' }
+};
+
+// 初始化庫存，賦予每一個物件「獨一無二的9碼編號」
 function initInventory() {
-  Object.keys(CONTAINER_TYPES).forEach(key => {
-    const typeInfo = CONTAINER_TYPES[key];
-    for (let i = 1; i <= 4; i++) {
-      inventory.push({
-        id: `${typeInfo.prefix}${String(i).padStart(6, '0')}`, // 9碼：前3碼種類，後6碼流水號
-        type: typeInfo.label,
-        typeKey: key, // 方便後端邏輯判斷
-        status: "idle", // 'idle' 或 'rented'
-        rentedBy: null, // 租借人名稱
-        rentedDate: null // 租出時間
-      });
-    }
-  });
+    Object.keys(TYPES).forEach(typeKey => {
+        const typeInfo = TYPES[typeKey];
+        // 假設每種容器各有 10 個真實庫存
+        for (let i = 1; i <= 10; i++) {
+            inventory.push({
+                id: `${typeInfo.code}${String(i).padStart(6, '0')}`, // 類型(3碼) + 獨立流水號(6碼)
+                typeKey: typeKey,
+                typeName: typeInfo.name,
+                status: 'idle' // 'idle', 'pending', 'rented'
+            });
+        }
+    });
 }
-
 initInventory();
-
-// 用戶資訊
-let userAccount = {
-  balance: 300,
-  points: 0
-};
-
-// 目前準備中的訂單 (QRCode 內容)
-let pendingOrder = {
-  isPrepared: false,
-  items: [] // 存放預計租借的容器 ID 清單
-};
 
 // ==========================================
 // 2. API 端點設定
 // ==========================================
 
-// [GET] 取得系統所有資訊 (供商家端管理面板使用)
-app.get('/api/admin/inventory', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      inventory,
-      userAccount,
-      pendingOrder
-    }
-  });
-});
-
-// [GET] 取得用戶端基本狀態 (輪詢用)
+// 取得系統狀態與所有資料
 app.get('/api/status', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      balance: userAccount.balance,
-      points: userAccount.points,
-      isPrepared: pendingOrder.isPrepared,
-      itemCount: pendingOrder.items.length // 告知用戶掃描後會借到幾個
-    }
-  });
+    res.json({
+        success: true,
+        data: {
+            balance,
+            points,
+            isPrepared,
+            transactions,
+            inventory // 回傳完整庫存給商家端計算數量
+        }
+    });
 });
 
-// [POST] 商家準備容器 (支援多種類、多數量)
-// 請求格式: { "CUP": 2, "BOWL": 1 }
+// 商家準備 QR Code
 app.post('/api/prepare', (req, res) => {
-  const requestedItems = req.body; // 例如 { CUP: 2, BOWL: 1 }
-  let itemsToRent = [];
+    const requested = req.body; // { CUP: x, BOX: y, BOWL: z }
+    pendingItems = [];
 
-  // 根據請求數量，從 inventory 中挑選 idle 的容器
-  for (const [typeKey, count] of Object.entries(requestedItems)) {
-    const available = inventory.filter(i => i.typeKey === typeKey && i.status === "idle");
-    
-    if (available.length < count) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `${CONTAINER_TYPES[typeKey].label} 庫存不足` 
-      });
+    for (const [typeKey, count] of Object.entries(requested)) {
+        if (count > 0) {
+            // 從庫存中挑選狀態為 idle 的特定容器
+            const available = inventory.filter(i => i.typeKey === typeKey && i.status === 'idle');
+            if (available.length < count) {
+                return res.status(400).json({ success: false, message: `${TYPES[typeKey].name} 庫存不足` });
+            }
+            
+            // 將挑選到的容器加入待租借清單，並暫時鎖定狀態
+            const selected = available.slice(0, count);
+            selected.forEach(item => {
+                item.status = 'pending';
+                pendingItems.push(item);
+            });
+        }
     }
-    
-    // 取出前 N 個 ID
-    const selected = available.slice(0, count).map(i => i.id);
-    itemsToRent = itemsToRent.concat(selected);
-  }
 
-  if (itemsToRent.length === 0) {
-    return res.status(400).json({ success: false, message: "請選擇至少一個容器" });
-  }
+    if (pendingItems.length === 0) return res.status(400).json({ success: false, message: "未選擇容器" });
 
-  pendingOrder.isPrepared = true;
-  pendingOrder.items = itemsToRent;
-
-  console.log(`[商家] 已準備 QRCode，包含容器: ${itemsToRent.join(', ')}`);
-  res.json({ success: true, items: itemsToRent });
+    isPrepared = true;
+    res.json({ success: true });
 });
 
-// [POST] 用戶執行租借 (一次租借多個)
+// 用戶確認租借
 app.post('/api/rent', (req, res) => {
-  if (!pendingOrder.isPrepared || pendingOrder.items.length === 0) {
-    return res.status(400).json({ success: false, message: "商家尚未準備好 QRCode" });
-  }
+    if (!isPrepared || pendingItems.length === 0) return res.status(400).json({ success: false, message: "商家尚未準備容器" });
+    
+    const rentAmount = pendingItems.length * 50; 
+    if (balance < rentAmount) return res.status(400).json({ success: false, message: "餘額不足" });
 
-  const totalDeposit = pendingOrder.items.length * 50; // 每個容器 50 元
+    const now = new Date();
+    const deadline = new Date();
+    deadline.setDate(now.getDate() + 7); // 7天後應歸還
 
-  if (userAccount.balance < totalDeposit) {
-    return res.status(400).json({ success: false, message: "餘額不足以支付總押金" });
-  }
+    const newTx = {
+        id: "TXN" + Date.now(), // 交易本身的編號
+        merchantName: "好棒棒環保商店",
+        date: now.toLocaleString(),
+        amount: rentAmount,
+        deadline: deadline.toLocaleDateString(),
+        isCompleted: false,
+        details: pendingItems.map(item => {
+            item.status = 'rented'; // 正式借出
+            return {
+                ...item,
+                isReturned: false,
+                returnDate: null
+            };
+        })
+    };
 
-  // 更新容器池狀態
-  const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
-  pendingOrder.items.forEach(id => {
-    const item = inventory.find(i => i.id === id);
-    if (item) {
-      item.status = "rented";
-      item.rentedBy = "測試用戶"; // 未來可從用戶登入資訊獲取
-      item.rentedDate = now;
-    }
-  });
+    balance -= rentAmount;
+    transactions.unshift(newTx); // 將新紀錄放最上面
+    isPrepared = false;
+    pendingItems = [];
 
-  // 扣款
-  userAccount.balance -= totalDeposit;
-
-  console.log(`[系統] 用戶租借了 ${pendingOrder.items.length} 個容器，扣除 ${totalDeposit} 元`);
-
-  // 重置準備狀態 (QRCode 刷新/失效)
-  pendingOrder.isPrepared = false;
-  pendingOrder.items = [];
-
-  res.json({ success: true, message: "租借成功" });
+    res.json({ success: true, message: "租借成功" });
 });
 
-// [POST] 模擬歸還 (歸還指定 ID)
-// 請求格式: { "id": "100000001" }
+// 模擬歸還 (歸還最早一筆未完成的交易)
 app.post('/api/return', (req, res) => {
-  const { id } = req.body;
-  const item = inventory.find(i => i.id === id);
+    const target = transactions.find(t => !t.isCompleted);
+    if (!target) return res.status(400).json({ success: false, message: "沒有待歸還的紀錄" });
 
-  if (!item || item.status === "idle") {
-    return res.status(400).json({ success: false, message: "無效的容器編號或該容器已在店內" });
-  }
+    target.isCompleted = true;
+    target.details.forEach(detailItem => {
+        detailItem.isReturned = true;
+        detailItem.returnDate = new Date().toLocaleString();
+        
+        // 將實體庫存狀態恢復為 idle
+        const invItem = inventory.find(i => i.id === detailItem.id);
+        if (invItem) invItem.status = 'idle';
+    });
 
-  item.status = "idle";
-  item.rentedBy = null;
-  item.rentedDate = null;
-  
-  userAccount.balance += 50;
-  userAccount.points += 10;
+    balance += target.amount;
+    points += (target.details.length * 10);
 
-  console.log(`[系統] 容器 ${id} 已歸還`);
-  res.json({ success: true });
+    res.json({ success: true, message: "歸還成功" });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`後端伺服器運行中: http://localhost:${PORT}`);
+app.listen(PORT, () => {
+    console.log(`✅ 伺服器已啟動: http://localhost:${PORT}`);
 });
