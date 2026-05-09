@@ -3,56 +3,262 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>商家端 - 環保容器循環系統</title>
+  <title>商家端 - 控制台</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-  <div class="relative flex min-h-screen items-center justify-center px-4">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_50%)]"></div>
+<body class="min-h-screen bg-slate-950 text-slate-100 p-6">
+  <div class="mx-auto max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <section class="lg:col-span-2 space-y-6">
+      <div class="rounded-2xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl backdrop-blur">
+        <h1 class="text-2xl font-bold tracking-wide">容器租借發行</h1>
+        <p class="mt-2 text-sm text-slate-400">選擇種類與數量以生成 QR Code</p>
 
-    <main class="relative w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl backdrop-blur">
-      <h1 class="text-center text-2xl font-bold tracking-wide">商家端控制台</h1>
-      <p class="mt-2 text-center text-sm text-slate-400">環保容器循環系統 MVP</p>
+        <div class="mt-8 space-y-8">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-4 rounded-xl bg-slate-800/30 border border-slate-800">
+            <div>
+              <p class="font-bold text-lg">環保杯</p>
+              <p class="text-xs text-slate-500">Prefix: 100</p>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="flex items-center gap-3">
+                <button onclick="changeQty('CUP', -1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">-</button>
+                <input type="number" id="qty-CUP" value="0" min="0" class="w-16 bg-slate-950 text-center py-2 rounded-md border border-slate-700 focus:ring-1 focus:ring-cyan-500 outline-none" onchange="validateInput('CUP')">
+                <button onclick="changeQty('CUP', 1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">+</button>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-slate-400">庫存狀況</p>
+              <p class="text-sm font-medium">
+                目前: <span id="stock-CUP">--</span> | 
+                剩餘: <span id="remain-CUP" class="text-cyan-400">--</span>
+              </p>
+            </div>
+          </div>
 
-      <button
-        id="generateBtn"
-        type="button"
-        class="mt-8 w-full rounded-xl bg-cyan-500 px-6 py-5 text-lg font-semibold text-slate-950 transition hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-300"
-      >
-        生成租借 QR Code
-      </button>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-4 rounded-xl bg-slate-800/30 border border-slate-800">
+            <div>
+              <p class="font-bold text-lg">環保餐盒</p>
+              <p class="text-xs text-slate-500">Prefix: 200</p>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="flex items-center gap-3">
+                <button onclick="changeQty('BOX', -1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">-</button>
+                <input type="number" id="qty-BOX" value="0" min="0" class="w-16 bg-slate-950 text-center py-2 rounded-md border border-slate-700 focus:ring-1 focus:ring-cyan-500 outline-none" onchange="validateInput('BOX')">
+                <button onclick="changeQty('BOX', 1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">+</button>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-slate-400">庫存狀況</p>
+              <p class="text-sm font-medium">
+                目前: <span id="stock-BOX">--</span> | 
+                剩餘: <span id="remain-BOX" class="text-cyan-400">--</span>
+              </p>
+            </div>
+          </div>
 
-      <section id="qrSection" class="mt-8 hidden text-center">
-        <img
-          id="qrImage"
-          src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=rent_trigger"
-          alt="租借 QR Code"
-          class="mx-auto rounded-lg border border-slate-700 bg-white p-2 shadow-lg"
-        />
-        <p class="mt-4 text-base font-medium text-emerald-300">請讓客戶掃描</p>
-      </section>
-    </main>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-4 rounded-xl bg-slate-800/30 border border-slate-800">
+            <div>
+              <p class="font-bold text-lg">環保碗</p>
+              <p class="text-xs text-slate-500">Prefix: 300</p>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="flex items-center gap-3">
+                <button onclick="changeQty('BOWL', -1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">-</button>
+                <input type="number" id="qty-BOWL" value="0" min="0" class="w-16 bg-slate-950 text-center py-2 rounded-md border border-slate-700 focus:ring-1 focus:ring-cyan-500 outline-none" onchange="validateInput('BOWL')">
+                <button onclick="changeQty('BOWL', 1)" class="w-10 h-10 rounded-lg border border-slate-600 hover:bg-slate-700 transition font-bold">+</button>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-slate-400">庫存狀況</p>
+              <p class="text-sm font-medium">
+                目前: <span id="stock-BOWL">--</span> | 
+                剩餘: <span id="remain-BOWL" class="text-cyan-400">--</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          id="generateBtn"
+          class="mt-10 w-full rounded-xl bg-cyan-500 py-4 text-lg font-bold text-slate-950 transition hover:bg-cyan-400 disabled:bg-slate-700 disabled:text-slate-500"
+        >
+          生成租借 QR Code
+        </button>
+
+        <div id="qrSection" class="mt-8 hidden border-t border-slate-700 pt-8 text-center">
+          <div class="inline-block bg-white p-3 rounded-xl shadow-lg">
+            <img id="qrImage" src="" alt="QRCode">
+          </div>
+          <p id="qrStatus" class="mt-4 text-emerald-400 font-medium animate-pulse">等待用戶掃描...</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="lg:col-span-1 space-y-6">
+      <div class="rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur h-full flex flex-col">
+        <h2 class="text-xl font-bold border-b border-slate-800 pb-4">即時出借紀錄</h2>
+        <div id="rentedList" class="mt-4 space-y-4 overflow-y-auto flex-1 pr-1">
+          <p class="text-slate-500 text-sm italic">同步中...</p>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <script>
-    const generateBtn = document.getElementById("generateBtn");
-    const qrSection = document.getElementById("qrSection");
+    const API_BASE = "http://localhost:3000";
+    let currentInventory = [];
+    let stockCount = { CUP: 0, BOX: 0, BOWL: 0 };
 
-    generateBtn.addEventListener("click", async () => {
-  try {
-    const response = await fetch("http://localhost:3000/api/prepare", { method: "POST" });
-    const result = await response.json();
-    
-    if (result.success) {
-      qrSection.classList.remove("hidden");
-      generateBtn.textContent = "租借功能已激活";
-      generateBtn.disabled = true;
-      generateBtn.classList.add("opacity-70", "cursor-not-allowed");
+    // 初始化/同步數據
+    async function syncData() {
+      try {
+        const response = await fetch(`${API_BASE}/api/admin/inventory`);
+        const result = await response.json();
+
+        if (result.success) {
+          const { inventory, pendingOrder } = result.data;
+          currentInventory = inventory;
+
+          // 更新各類別庫存數 (status 為 idle 的才算可用庫存)
+          stockCount.CUP = inventory.filter(i => i.typeKey === 'CUP' && i.status === 'idle').length;
+          stockCount.BOX = inventory.filter(i => i.typeKey === 'BOX' && i.status === 'idle').length;
+          stockCount.BOWL = inventory.filter(i => i.typeKey === 'BOWL' && i.status === 'idle').length;
+
+          updateStockUI();
+          updateRentedList(inventory);
+          handleQRStatus(pendingOrder);
+        }
+      } catch (e) {
+        console.error("同步失敗", e);
+      }
     }
-  } catch (err) {
-    alert("連線伺服器失敗");
-  }
-});
+
+    // 更新 UI 上的庫存數字
+    function updateStockUI() {
+      ['CUP', 'BOX', 'BOWL'].forEach(type => {
+        const stockEl = document.getElementById(`stock-${type}`);
+        const remainEl = document.getElementById(`remain-${type}`);
+        const inputEl = document.getElementById(`qty-${type}`);
+        const selectQty = parseInt(inputEl.value) || 0;
+
+        stockEl.textContent = stockCount[type];
+        const remaining = stockCount[type] - selectQty;
+        remainEl.textContent = remaining;
+
+        // 如果選超過庫存，標紅警告
+        if (remaining < 0) {
+          remainEl.className = "text-red-500 font-bold";
+        } else {
+          remainEl.className = "text-cyan-400";
+        }
+      });
+    }
+
+    // 數量增減控制
+    function changeQty(type, delta) {
+      const input = document.getElementById(`qty-${type}`);
+      let val = (parseInt(input.value) || 0) + delta;
+      
+      if (val < 0) val = 0;
+      // 限制不能點超過目前店內擁有的庫存
+      if (val > stockCount[type]) val = stockCount[type];
+      
+      input.value = val;
+      updateStockUI();
+    }
+
+    // 直接輸入後的驗證
+    function validateInput(type) {
+      const input = document.getElementById(`qty-${type}`);
+      let val = parseInt(input.value) || 0;
+      if (val < 0) val = 0;
+      if (val > stockCount[type]) val = stockCount[type];
+      input.value = val;
+      updateStockUI();
+    }
+
+    // 更新右側紀錄清單
+    function updateRentedList(inventory) {
+      const rentedList = document.getElementById("rentedList");
+      const rentedItems = inventory.filter(i => i.status === "rented");
+      
+      if (rentedItems.length === 0) {
+        rentedList.innerHTML = `<p class="text-slate-500 text-sm italic">目前無出借紀錄</p>`;
+        return;
+      }
+
+      rentedList.innerHTML = rentedItems.map(item => `
+        <div class="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 hover:border-cyan-500/30 transition">
+          <div class="flex justify-between items-start mb-2">
+            <span class="px-2 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold">${item.type}</span>
+            <span class="text-[10px] text-slate-500 font-mono">${item.rentedDate.split(' ')[1]}</span>
+          </div>
+          <p class="text-sm font-mono text-slate-200">${item.id}</p>
+          <p class="mt-1 text-[11px] text-slate-500">租借人：${item.rentedBy}</p>
+        </div>
+      `).join('');
+    }
+
+    // 處理 QR Code 狀態刷新
+    function handleQRStatus(pendingOrder) {
+      const qrSection = document.getElementById("qrSection");
+      const generateBtn = document.getElementById("generateBtn");
+      const qrStatus = document.getElementById("qrStatus");
+
+      if (!pendingOrder.isPrepared && !qrSection.classList.contains("hidden")) {
+        qrStatus.textContent = "✓ 已完成領取";
+        qrStatus.className = "mt-4 text-cyan-400 font-bold";
+        qrStatus.classList.remove("animate-pulse");
+        
+        setTimeout(() => {
+          qrSection.classList.add("hidden");
+          generateBtn.disabled = false;
+          // 重置所有輸入
+          document.querySelectorAll('input[type="number"]').forEach(i => i.value = 0);
+          updateStockUI();
+        }, 3000);
+      }
+    }
+
+    // 送出準備請求
+    document.getElementById("generateBtn").addEventListener("click", async () => {
+      const payload = {
+        CUP: parseInt(document.getElementById("qty-CUP").value),
+        BOX: parseInt(document.getElementById("qty-BOX").value),
+        BOWL: parseInt(document.getElementById("qty-BOWL").value)
+      };
+
+      if (Object.values(payload).reduce((a, b) => a + b, 0) === 0) {
+        alert("請選擇容器數量");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/prepare`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+
+        if (res.success) {
+          const qrData = encodeURIComponent(`rent_order_${Date.now()}`);
+          document.getElementById("qrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrData}`;
+          document.getElementById("qrSection").classList.remove("hidden");
+          document.getElementById("generateBtn").disabled = true;
+          document.getElementById("qrStatus").textContent = "等待用戶掃描...";
+        } else {
+          alert(res.message);
+        }
+      } catch (e) {
+        alert("連線後端失敗");
+      }
+    });
+
+    setInterval(syncData, 1500);
+    syncData();
   </script>
 </body>
 </html>
