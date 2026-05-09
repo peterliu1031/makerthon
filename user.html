@@ -17,7 +17,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 relative">
+<body class="min-h-screen bg-slate-950 text-slate-100 relative pb-20">
   <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_45%)] pointer-events-none"></div>
 
   <main class="relative mx-auto flex min-h-[90vh] w-full max-w-md flex-col items-center px-4 py-8">
@@ -62,9 +62,20 @@
       </button>
       <p id="statusHint" class="mt-4 text-sm text-slate-400">等待商家生成 QR Code...</p>
       
-      <button id="returnBtn" class="mt-4 w-full rounded-2xl border border-slate-700 py-3 text-sm font-bold text-slate-400 hover:bg-slate-800">
-        模擬歸還容器 (測試按鈕)
-      </button>
+      <div class="mt-4 flex gap-3">
+        <button id="returnBtn" class="flex-1 rounded-2xl border border-slate-700 py-3 text-sm font-bold text-slate-400 hover:bg-slate-800">
+          模擬歸還
+        </button>
+        <button id="overdueBtn" class="flex-1 rounded-2xl border border-red-500/50 py-3 text-sm font-bold text-red-400 hover:bg-red-500/20 transition">
+          模擬逾期 (-20分)
+        </button>
+      </div>
+    </section>
+
+    <section class="mt-10 w-full">
+      <h2 class="text-sm font-bold mb-4 text-slate-400 uppercase tracking-widest">📍 附近合作商家 (依貢獻度排序)</h2>
+      <div id="merchantList" class="space-y-3">
+        </div>
     </section>
 
     <section class="mt-10 w-full">
@@ -108,12 +119,10 @@
     const API_BASE = window.location.origin;
     let openDropdowns = new Set(); 
 
-    // 商店開關邏輯
     function toggleShop() {
       document.getElementById('shopModal').classList.toggle('hidden');
     }
 
-    // 兌換獎品 API 呼叫
     async function redeemReward(cost, itemName) {
       try {
         const response = await fetch(`${API_BASE}/api/redeem`, {
@@ -125,7 +134,7 @@
         
         if (result.success) {
           alert(`🎉 ${result.message}`);
-          fetchStatus(); // 刷新點數
+          fetchStatus(); 
         } else {
           alert(`❌ ${result.message}`);
         }
@@ -211,10 +220,26 @@
           document.getElementById("creditText").textContent = `${d.userCreditScore} 分`;
           document.getElementById("carbonText").textContent = `${d.userCarbonSaved.toFixed(2)} kg`;
           
+          // 【選項 A】動態渲染附近商家
+          const mList = document.getElementById("merchantList");
+          if (d.nearbyMerchants) {
+            mList.innerHTML = d.nearbyMerchants.sort((a,b) => b.contribution - a.contribution).map(m => `
+              <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-2xl flex justify-between items-center hover:border-emerald-500/50 transition">
+                <div>
+                  <p class="font-bold text-sm text-white">${m.name}</p>
+                  <p class="text-[10px] text-slate-500 mt-1">距離：${m.distance} | 評分：★${m.rating}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-tighter">環保貢獻度</p>
+                  <p class="text-lg font-black text-emerald-400">${m.contribution}</p>
+                </div>
+              </div>
+            `).join('');
+          }
+
           const rentBtn = document.getElementById("rentBtn");
           const statusHint = document.getElementById("statusHint");
           
-          // 如果正在播放相機動畫，就不更新按鈕狀態以免閃爍
           if (document.getElementById('cameraMockup').classList.contains('hidden')) {
             if (d.isPrepared) {
               rentBtn.disabled = false;
@@ -234,21 +259,17 @@
       } catch (e) { console.error("同步失敗", e); }
     }
 
-    // 掃碼按鈕邏輯：加入假相機掃描延遲
     document.getElementById("rentBtn").addEventListener("click", () => {
       const camera = document.getElementById('cameraMockup');
       const rentBtn = document.getElementById('rentBtn');
       
-      // 顯示假相機
       camera.classList.remove('hidden');
       rentBtn.classList.add('hidden');
       
-      // 模擬掃描過程 1.5 秒
       setTimeout(async () => {
         const res = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
         const data = await res.json();
         
-        // 隱藏相機，恢復按鈕
         camera.classList.add('hidden');
         rentBtn.classList.remove('hidden');
 
@@ -265,6 +286,18 @@
       const data = await res.json();
       alert(data.message);
       fetchStatus();
+    });
+
+    // 【選項 B】逾期測試按鈕邏輯
+    document.getElementById("overdueBtn").addEventListener("click", async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/test-overdue`, { method: "POST" });
+        const data = await res.json();
+        alert(data.message);
+        fetchStatus();
+      } catch (e) {
+        alert("連線錯誤");
+      }
     });
 
     setInterval(fetchStatus, 1500);

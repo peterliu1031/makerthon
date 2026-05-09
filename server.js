@@ -3,15 +3,16 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 const PORT = 3000;
-const COOL_DOWN_TIME = 0;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '.')));
 
 // ==========================================
-// 1. 模擬資料庫與真實庫存系統
+// 1. 模擬資料庫系統
 // ==========================================
+const COOL_DOWN_TIME = 0; // 開發模式設為 0
+
 let balance = 300;
 let points = 0;
 let isPrepared = false;
@@ -19,12 +20,19 @@ let pendingItems = [];
 let transactions = [];
 let inventory = [];
 
+// 用戶與商家統計資料
+let userCreditScore = 100;
+let userCarbonSaved = 0.0;
+let merchantEcoContribution = 1250; // 預設一些初始數據增加真實感
+let merchantCarbonSaved = 62.5;
 
-// 【新增】碳足跡與信用評分、貢獻度變數
-let userCreditScore = 100;         // 用戶信用評分 (預設 100)
-let userCarbonSaved = 0.0;         // 用戶累積減碳量 (kg)
-let merchantEcoContribution = 0;   // 商家環保貢獻度 (累計借出容器數)
-let merchantCarbonSaved = 0.0;     // 商家累積減碳量 (kg)
+// 【選項 A】附近合作商家清單
+let nearbyMerchants = [
+    { name: "猩火環保飯廳", contribution: 1250, distance: "300m", rating: 4.8 },
+    { name: "綠能精品咖啡", contribution: 840, distance: "550m", rating: 4.5 },
+    { name: "好棒棒環保商店", contribution: 2100, distance: "1.2km", rating: 4.9 },
+    { name: "永續健康輕食", contribution: 420, distance: "2.1km", rating: 4.2 }
+];
 
 const TYPES = {
     CUP:  { code: '001', name: '環保杯' },
@@ -48,22 +56,17 @@ function initInventory() {
 initInventory();
 
 // ==========================================
-// 2. API 端點設定
+// 2. API 端點
 // ==========================================
 
 app.get('/api/status', (req, res) => {
     res.json({
         success: true,
         data: {
-            balance,
-            points,
-            userCreditScore,
-            userCarbonSaved,
-            merchantEcoContribution,
-            merchantCarbonSaved,
-            isPrepared,
-            transactions,
-            inventory 
+            balance, points, userCreditScore, userCarbonSaved,
+            merchantEcoContribution, merchantCarbonSaved,
+            isPrepared, transactions, inventory,
+            nearbyMerchants // 回傳附近商家資料
         }
     });
 });
@@ -71,14 +74,10 @@ app.get('/api/status', (req, res) => {
 app.post('/api/prepare', (req, res) => {
     const requested = req.body; 
     pendingItems = [];
-
     for (const [typeKey, count] of Object.entries(requested)) {
         if (count > 0) {
             const available = inventory.filter(i => i.typeKey === typeKey && i.status === 'idle');
-            if (available.length < count) {
-                return res.status(400).json({ success: false, message: `${TYPES[typeKey].name} 庫存不足` });
-            }
-            
+            if (available.length < count) return res.status(400).json({ success: false, message: "庫存不足" });
             const selected = available.slice(0, count);
             selected.forEach(item => {
                 item.status = 'pending';
@@ -86,33 +85,32 @@ app.post('/api/prepare', (req, res) => {
             });
         }
     }
-
-    if (pendingItems.length === 0) return res.status(400).json({ success: false, message: "未選擇容器" });
-
     isPrepared = true;
     res.json({ success: true });
 });
 
 app.post('/api/rent', (req, res) => {
-    if (!isPrepared || pendingItems.length === 0) return res.status(400).json({ success: false, message: "商家尚未準備容器" });
+    if (!isPrepared) return res.status(400).json({ success: false, message: "商家尚未準備" });
     
-    // 【信用評分阻擋機制】
-    if (userCreditScore < 60) return res.status(400).json({ success: false, message: "信用評分過低，暫時無法租借" });
+    // 【信用檢查】低於 60 分拒絕租借
+    if (userCreditScore < 60) {
+        return res.status(403).json({ success: false, message: "您的信用評分過低 (" + userCreditScore + ")，已被系統鎖定租借功能。" });
+    }
 
     const rentAmount = pendingItems.length * 50; 
     if (balance < rentAmount) return res.status(400).json({ success: false, message: "餘額不足" });
 
     const now = new Date();
     const deadline = new Date();
-    deadline.setDate(now.getDate() + 7); 
-    const rentTimeMs = Date.now(); // 紀錄租借的毫秒時間 (防弊用)
+    deadline.setDate(now.getDate() + 7);
+    const rentTimeMs = Date.now();
 
     const newTx = {
         id: "TXN" + rentTimeMs, 
         merchantName: "猩火環保飯廳",
         renterName: "USER_5487",
         date: now.toLocaleString(),
-        rentTimeMs: rentTimeMs, 
+        rentTimeMs: rentTimeMs,
         amount: rentAmount,
         deadline: deadline.toLocaleDateString(),
         isCompleted: false,
@@ -123,44 +121,19 @@ app.post('/api/rent', (req, res) => {
     };
 
     balance -= rentAmount;
-    
-    // 【責任脫鉤】店家只要借出，環保貢獻度直接增加
     merchantEcoContribution += pendingItems.length;
     merchantCarbonSaved += (pendingItems.length * 0.05);
-
     transactions.unshift(newTx); 
     isPrepared = false;
     pendingItems = [];
-
-    res.json({ success: true, message: "租借成功" });
-});
-
-// 獎勵商店兌換 API
-app.post('/api/redeem', (req, res) => {
-    const { cost, itemName } = req.body;
-    
-    if (points < cost) {
-        return res.status(400).json({ success: false, message: "點數不足，無法兌換！" });
-    }
-    
-    points -= cost;
-    console.log(`[系統通知] 用戶成功兌換了 ${itemName}，扣除 ${cost} 點，剩餘 ${points} 點`);
-    
-    // 實務上可以把兌換紀錄存入資料庫，這裡直接回傳成功
-    res.json({ success: true, message: `兌換成功！已獲得「${itemName}」` });
+    res.json({ success: true });
 });
 
 app.post('/api/return', (req, res) => {
     const target = transactions.find(t => !t.isCompleted);
-    if (!target) return res.status(400).json({ success: false, message: "沒有待歸還的紀錄" });
+    if (!target) return res.status(400).json({ success: false, message: "無待歸還紀錄" });
 
-    // 【冷卻期防弊機制】檢查借出到歸還的時間差
-    const nowMs = Date.now();
-    const timeDiff = nowMs - target.rentTimeMs;
-    
-    // 使用剛才設定的常數來判斷
-    const isCoolingOff = timeDiff < COOL_DOWN_TIME; 
-
+    const isCoolingOff = (Date.now() - target.rentTimeMs) < COOL_DOWN_TIME; 
     target.isCompleted = true;
     target.details.forEach(detailItem => {
         detailItem.isReturned = true;
@@ -169,23 +142,38 @@ app.post('/api/return', (req, res) => {
         if (invItem) invItem.status = 'idle';
     });
 
-    balance += target.amount; // 押金一律退還
+    balance += target.amount;
 
-    let message = "";
     if (isCoolingOff) {
-        // 如果是洗點數行為，不給點數與碳足跡，並跳出警告
-        message = "歸還成功！但因使用時間過短，觸發防弊機制，本次不計算點數與減碳量。";
+        res.json({ success: true, message: "歸還成功，但觸發防弊機制不計獎勵。" });
     } else {
-        // 正常使用，發放獎勵
         points += (target.details.length * 10);
         userCarbonSaved += (target.details.length * 0.05);
-        message = "歸還成功！獲得環保獎勵與減碳量！";
+        // 歸還後信用評分小幅度回升 (獎勵行為)
+        if(userCreditScore < 100) userCreditScore += 2;
+        res.json({ success: true, message: "歸還成功！獲得點數與減碳獎勵。" });
     }
-
-    res.json({ success: true, message: message });
 });
 
-app.listen(PORT, () => {
-    console.log(`✅ 伺服器已啟動: http://localhost:${PORT}`);
-    console.log(`👉 登入頁面: http://localhost:${PORT}/login.html`);
+// 【選項 B】模擬逾期懲罰機制
+app.post('/api/test-overdue', (req, res) => {
+    const target = transactions.find(t => !t.isCompleted);
+    if (!target) return res.status(400).json({ success: false, message: "目前無租借中的容器可模擬逾期。" });
+    
+    // 依據要求：扣除 20 分信用評分
+    userCreditScore -= 20; 
+    if (userCreditScore < 0) userCreditScore = 0;
+    
+    console.log(`[警報] 使用者容器逾期，信用分數重挫至 ${userCreditScore}`);
+    res.json({ success: true, message: "警告：系統偵測到容器逾期未還！信用分數已扣除 20 分。", newScore: userCreditScore });
 });
+
+// 獎勵兌換
+app.post('/api/redeem', (req, res) => {
+    const { cost, itemName } = req.body;
+    if (points < cost) return res.status(400).json({ success: false, message: "點數不足" });
+    points -= cost;
+    res.json({ success: true, message: `已兌換「${itemName}」` });
+});
+
+app.listen(PORT, () => console.log(`伺服器運作中: http://localhost:${PORT}`));
