@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>用戶端 - 環保容器循環系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <div class="relative min-h-screen px-4 py-8">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.2),_transparent_45%)]"></div>
+
+    <main class="relative mx-auto flex min-h-[90vh] w-full max-w-xl flex-col items-center">
+      <section class="w-full rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-xl backdrop-blur">
+        <h1 class="text-xl font-bold">我的帳戶</h1>
+        <p class="mt-1 text-sm text-slate-400">環保容器循環系統 MVP</p>
+        <div class="mt-5 grid grid-cols-2 gap-4">
+          <div class="rounded-xl bg-slate-800/80 p-4">
+            <p class="text-sm text-slate-400">餘額</p>
+            <p id="balanceText" class="mt-2 text-2xl font-semibold text-cyan-300">載入中...</p>
+          </div>
+          <div class="rounded-xl bg-slate-800/80 p-4">
+            <p class="text-sm text-slate-400">環保點數</p>
+            <p id="pointsText" class="mt-2 text-2xl font-semibold text-emerald-300">載入中...</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-16 flex flex-1 flex-col items-center justify-center">
+        <button
+          id="rentBtn"
+          type="button"
+          class="rounded-2xl bg-emerald-500 px-10 py-5 text-xl font-bold text-slate-950 shadow-lg transition hover:bg-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+        >
+          掃描 QR Code 租借
+        </button>
+        <p id="statusHint" class="mt-4 text-sm text-slate-400">點擊後會向本地 API 發送租借請求</p>
+      </section>
+    </main>
+  </div>
+
+  <div
+    id="returnToast"
+    class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center opacity-0 transition-opacity duration-300"
+  >
+    <div id="returnToastCard" class="mx-4 w-full max-w-md scale-95 rounded-2xl border border-emerald-300/40 bg-emerald-500/90 p-6 text-center text-slate-950 shadow-2xl transition-transform duration-300">
+      <p class="text-2xl font-extrabold">歸還成功！</p>
+      <p class="mt-2 text-base font-semibold">退回押金 50 元，獲得點數 10 點</p>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:3000";
+    const rentBtn = document.getElementById("rentBtn");
+    const balanceText = document.getElementById("balanceText");
+    const pointsText = document.getElementById("pointsText");
+    const statusHint = document.getElementById("statusHint");
+    const returnToast = document.getElementById("returnToast");
+    const returnToastCard = document.getElementById("returnToastCard");
+
+    let previousStatus = null;
+
+    function setRentButtonState(isRented) {
+      if (isRented) {
+        rentBtn.disabled = true;
+        rentBtn.textContent = "借用中";
+        rentBtn.classList.remove("hover:bg-emerald-400");
+        rentBtn.classList.add("cursor-not-allowed", "opacity-70");
+        statusHint.textContent = "目前容器借用中，等待歸還";
+      } else {
+        rentBtn.disabled = false;
+        rentBtn.textContent = "掃描 QR Code 租借";
+        rentBtn.classList.add("hover:bg-emerald-400");
+        rentBtn.classList.remove("cursor-not-allowed", "opacity-70");
+        statusHint.textContent = "可再次租借環保容器";
+      }
+    }
+
+    function showReturnSuccessEffect() {
+      returnToast.classList.remove("opacity-0");
+      returnToast.classList.add("opacity-100");
+      returnToastCard.classList.remove("scale-95");
+      returnToastCard.classList.add("scale-100");
+
+      setTimeout(() => {
+        returnToast.classList.remove("opacity-100");
+        returnToast.classList.add("opacity-0");
+        returnToastCard.classList.remove("scale-100");
+        returnToastCard.classList.add("scale-95");
+      }, 2400);
+    }
+
+    async function fetchStatus() {
+      try {
+        const response = await fetch(`${API_BASE}/api/status`);
+        if (!response.ok) {
+          throw new Error("Status API 回應失敗");
+        }
+
+        const data = await response.json();
+        const balance = data.balance ?? "N/A";
+        const points = data.points ?? "N/A";
+        const currentStatus = data.status ?? "idle";
+
+        balanceText.textContent = typeof balance === "number" ? `${balance} 元` : `${balance}`;
+        pointsText.textContent = typeof points === "number" ? `${points} 點` : `${points}`;
+
+        setRentButtonState(currentStatus === "rented");
+
+        if (previousStatus === "rented" && currentStatus === "idle") {
+          showReturnSuccessEffect();
+        }
+        previousStatus = currentStatus;
+      } catch (error) {
+        balanceText.textContent = "載入失敗";
+        pointsText.textContent = "載入失敗";
+      }
+    }
+
+    rentBtn.addEventListener("click", async () => {
+      try {
+        rentBtn.disabled = true;
+        rentBtn.textContent = "處理中...";
+
+        const response = await fetch(`${API_BASE}/api/rent`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("租借失敗");
+        }
+
+        alert("租借成功，已扣除押金 50 元");
+        setRentButtonState(true);
+        previousStatus = "rented";
+        fetchStatus();
+      } catch (error) {
+        alert("租借失敗，請稍後再試");
+        setRentButtonState(false);
+      }
+    });
+
+    fetchStatus();
+    setInterval(fetchStatus, 2000);
+  </script>
+</body>
+</html>
