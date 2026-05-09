@@ -23,7 +23,7 @@
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
                 <button onclick="changeQty('CUP', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
-                <input type="number" id="qty-CUP" value="0" min="0" readonly class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <input type="number" id="qty-CUP" value="0" min="0" onchange="validateInput('${type}')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
                 <button onclick="changeQty('CUP', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
@@ -41,7 +41,7 @@
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
                 <button onclick="changeQty('BOX', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
-                <input type="number" id="qty-BOX" value="0" min="0" readonly class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <input type="number" id="qty-BOX" value="0" min="0" onchange="validateInput('${type}')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
                 <button onclick="changeQty('BOX', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
@@ -59,7 +59,7 @@
             <div class="flex flex-col items-center">
               <div class="flex items-center gap-3">
                 <button onclick="changeQty('BOWL', -1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">-</button>
-                <input type="number" id="qty-BOWL" value="0" min="0" readonly class="w-12 bg-transparent text-center text-xl font-bold outline-none">
+                <input type="number" id="qty-BOWL" value="0" min="0" onchange="validateInput('${type}')" class="w-12 bg-transparent text-center text-xl font-bold outline-none">
                 <button onclick="changeQty('BOWL', 1)" class="w-8 h-8 rounded-full border border-slate-600 hover:bg-slate-700 font-bold">+</button>
               </div>
             </div>
@@ -126,6 +126,15 @@
       updateStockUI();
     }
 
+    function validateInput(type) {
+      const input = document.getElementById(`qty-${type}`);
+      let val = parseInt(input.value) || 0;
+      if (val < 0) val = 0;
+      if (val > currentStock[type]) val = currentStock[type]; // 不可大於庫存
+      input.value = val;
+      updateStockUI();
+    }
+
     document.getElementById("generateBtn").addEventListener("click", async () => {
       const payload = {
         CUP: parseInt(document.getElementById("qty-CUP").value),
@@ -186,6 +195,9 @@
                 <div class="flex justify-between font-bold text-emerald-400">
                   <span>交易紀錄: ${tx.id}</span>
                   <span>$${tx.amount}</span>
+                </div>
+                <div class="flex justify-between font-bold text-emerald-400">
+                   <span>${tx.renterName} 的租借紀錄</span> <span>$${tx.amount}</span>
                 </div>
                 <div class="mt-2 space-y-1 text-slate-400 font-mono">
                   ${tx.details.map(item => `<div>• ${item.typeName} (${item.id})</div>`).join('')}

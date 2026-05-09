@@ -101,7 +101,8 @@ app.post('/api/rent', (req, res) => {
 
     const newTx = {
         id: "TXN" + Date.now(), // 交易本身的編號
-        merchantName: "好棒棒環保商店",
+        merchantName: "猩火環保飯廳",
+        renterName: "USER_5487",
         date: now.toLocaleString(),
         amount: rentAmount,
         deadline: deadline.toLocaleDateString(),
