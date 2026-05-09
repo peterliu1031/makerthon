@@ -90,32 +90,29 @@
       }, 2400);
     }
 
+    // user.html 修正後的 fetchStatus
     async function fetchStatus() {
-      try {
+    try {
         const response = await fetch(`${API_BASE}/api/status`);
-        if (!response.ok) {
-          throw new Error("Status API 回應失敗");
+        const result = await response.json(); // 注意：後端回傳的是 { success, data: {...} }
+
+        if (result.success) {
+            const data = result.data; // 取得 data 內層
+            balanceText.textContent = `${data.balance} 元`; // 根據你 server.js 的命名
+            pointsText.textContent = `${data.points} 點`;
+            
+            const currentStatus = data.cupStatus;
+            setRentButtonState(currentStatus === "rented");
+            
+            if (previousStatus === "rented" && currentStatus === "idle") {
+                showReturnSuccessEffect();
+            }
+            previousStatus = currentStatus;
         }
-
-        const data = await response.json();
-        const balance = data.balance ?? "N/A";
-        const points = data.points ?? "N/A";
-        const currentStatus = data.status ?? "idle";
-
-        balanceText.textContent = typeof balance === "number" ? `${balance} 元` : `${balance}`;
-        pointsText.textContent = typeof points === "number" ? `${points} 點` : `${points}`;
-
-        setRentButtonState(currentStatus === "rented");
-
-        if (previousStatus === "rented" && currentStatus === "idle") {
-          showReturnSuccessEffect();
-        }
-        previousStatus = currentStatus;
-      } catch (error) {
-        balanceText.textContent = "載入失敗";
-        pointsText.textContent = "載入失敗";
-      }
+    } catch (error) {
+        console.error("讀取失敗", error);
     }
+}
 
     rentBtn.addEventListener("click", async () => {
       try {
