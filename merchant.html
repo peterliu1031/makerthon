@@ -38,13 +38,21 @@
     const generateBtn = document.getElementById("generateBtn");
     const qrSection = document.getElementById("qrSection");
 
-    generateBtn.addEventListener("click", () => {
+    generateBtn.addEventListener("click", async () => {
+  try {
+    const response = await fetch("http://localhost:3000/api/prepare", { method: "POST" });
+    const result = await response.json();
+    
+    if (result.success) {
       qrSection.classList.remove("hidden");
-      generateBtn.textContent = "QR Code 已生成";
+      generateBtn.textContent = "租借功能已激活";
       generateBtn.disabled = true;
-      generateBtn.classList.remove("hover:bg-cyan-400");
-      generateBtn.classList.add("cursor-not-allowed", "opacity-70");
-    });
+      generateBtn.classList.add("opacity-70", "cursor-not-allowed");
+    }
+  } catch (err) {
+    alert("連線伺服器失敗");
+  }
+});
   </script>
 </body>
 </html>

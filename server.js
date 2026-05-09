@@ -14,6 +14,7 @@ app.use(express.json());
 let status = "idle"; // 容器狀態：'idle' (在庫待租借), 'rented' (借出中)
 let balance = 100;  // 模擬用戶錢包餘額
 let points = 0;     // 模擬用戶獲得的環保獎勵點數
+let isPrepared = false; //商家是否已準備好容器
 
 // ==========================================
 // API 端點設定
@@ -26,32 +27,31 @@ app.get('/api/status', (req, res) => {
         data: {
             status: status,
             balance: balance,
-            points: points
+            points: points,
+            isPrepared: isPrepared 
         }
     });
 });
 
-// 2. 用戶掃碼租借 (由前端網頁呼叫)
+// 2. 商家準備容器 (由 merchant.html 呼叫)
+app.post('/api/prepare', (req, res) => {
+    isPrepared = true;
+    res.json({ success: true, message: "QR Code 已激活，等待客戶掃描" });
+});
+
+// 3. 用戶租借 (加入判斷條件)
 app.post('/api/rent', (req, res) => {
-    if (status === "rented") {
-        return res.status(400).json({ success: false, message: "容器已被借走" });
+    if (!isPrepared) {
+        return res.status(400).json({ success: false, message: "商家尚未生成租借碼" });
+    }
+    if (cupStatus === "rented") {
+        return res.status(400).json({ success: false, message: "容器借用中" });
     }
     
-    if (balance < 50) {
-        return res.status(400).json({ success: false, message: "餘額不足，無法支付押金" });
-    }
-
-    // 執行借出邏輯：扣除押金，更改狀態
     balance -= 50;
     status = "rented";
-
-    console.log(`[系統通知] 容器已借出！扣除押金 50 元。目前餘額: ${balance}`);
-
-    res.json({
-        success: true,
-        message: "租借成功",
-        data: { status, balance }
-    });
+    isPrepared = false; // 租借完成後重置準備狀態
+    res.json({ success: true, message: "租借成功" });
 });
 
 // 3. 實體歸還通知 (由 ESP32 呼叫)
