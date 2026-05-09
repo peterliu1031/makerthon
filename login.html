@@ -1,53 +1,136 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>註冊登入 - 環保容器循環系統</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_45%)] pointer-events-none"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>註冊登入 - 循環日常</title>
 
-  <main class="relative w-full max-w-sm rounded-3xl border border-slate-700 bg-slate-900/80 p-8 shadow-2xl backdrop-blur">
-    <div class="text-center mb-8">
-      <div class="mx-auto h-16 w-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-        <span class="text-3xl">🌱</span>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;600;700&family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Nunito", "sans-serif"],
+              serif: ["Fraunces", "serif"],
+            },
+            colors: {
+              foreground: "#2C2C24",
+              primary: "#5D7052",
+              "primary-foreground": "#F3F4F1",
+              secondary: "#C18C5D",
+              muted: "#F0EBE5",
+              "muted-foreground": "#78786C",
+              border: "#DED8CF",
+            },
+            boxShadow: { soft: "0 4px 20px -2px rgba(93, 112, 82, 0.15)" },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      /* 紙張雜訊 */
+      .noise-overlay::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0.04;
+        pointer-events: none;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E");
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen bg-[radial-gradient(circle_at_center,_#F9FBF5_0%,_#E1EED3_50%,_#C2DBAA_100%)] text-foreground flex items-center justify-center p-4 font-sans relative noise-overlay overflow-hidden"
+  >
+    <div
+      class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[80px] rounded-[60%_40%_30%_70%/60%_30%_70%_40%] pointer-events-none z-0"
+    ></div>
+    <div
+      class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 blur-[80px] rounded-[30%_60%_70%_40%/50%_60%_30%_60%] pointer-events-none z-0"
+    ></div>
+
+    <main
+      class="relative z-10 w-full max-w-sm bg-[#FEFEFA] border border-border/80 p-8 sm:p-10 shadow-soft rounded-[2.5rem] rounded-tl-[4rem] rounded-br-[4rem] group hover:shadow-[0_10px_30px_-5px_rgba(93,112,82,0.15)] transition-shadow duration-500"
+    >
+      <div class="text-center mb-10">
+        <div
+          class="mx-auto h-16 w-16 bg-primary/10 rounded-[40%_60%_70%_30%/40%_50%_60%_50%] flex items-center justify-center mb-5 text-primary"
+        >
+          <i data-lucide="leaf" class="w-7 h-7"></i>
+        </div>
+        <h1 class="text-3xl font-serif font-bold text-primary tracking-wide">
+          循環日常
+        </h1>
+        <p class="text-sm text-muted-foreground mt-2">請輸入手機號碼快速登入</p>
       </div>
-      <h1 class="text-2xl font-bold text-white">環保循環系統</h1>
-      <p class="text-sm text-slate-400 mt-1">請輸入手機號碼快速登入</p>
-    </div>
 
-    <div class="space-y-5" id="step1">
-      <div>
-        <label class="text-xs text-slate-400 uppercase font-bold">手機號碼</label>
-        <input type="tel" value="0912345678" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white outline-none focus:border-emerald-500 transition">
+      <div class="space-y-6" id="step1">
+        <div>
+          <label
+            class="text-xs text-muted-foreground font-semibold tracking-wider flex items-center gap-1.5 mb-2 pl-2"
+          >
+            <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> 手機號碼
+          </label>
+          <input
+            type="tel"
+            value="0912345678"
+            class="w-full bg-white border border-border rounded-full px-5 py-3.5 text-foreground placeholder-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary/30 transition-all duration-300 shadow-sm"
+          />
+        </div>
+        <button
+          onclick="nextStep()"
+          class="w-full rounded-full bg-primary py-4 font-bold text-primary-foreground hover:scale-105 active:scale-95 transition-all duration-300 shadow-soft flex items-center justify-center gap-2"
+        >
+          <i data-lucide="send" class="w-4 h-4"></i> 獲取驗證碼
+        </button>
       </div>
-      <button onclick="nextStep()" class="w-full rounded-xl bg-emerald-500 py-4 font-bold text-slate-950 hover:bg-emerald-400 transition">
-        獲取驗證碼
-      </button>
-    </div>
 
-    <div class="space-y-5 hidden" id="step2">
-      <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-        <h3 class="font-bold text-emerald-400 mb-2">首次使用需預繳押金</h3>
-        <p class="text-xs text-slate-400 leading-relaxed">為了保障容器循環，免除綁定信用卡帶來的資安疑慮，我們採用「單次儲值錢包」機制。請先儲值 300 元作為循環押金。</p>
+      <div class="space-y-6 hidden" id="step2">
+        <div
+          class="p-5 bg-white rounded-[1.5rem] rounded-tr-[2.5rem] border border-border/50"
+        >
+          <h3
+            class="font-bold text-primary mb-2.5 flex items-center gap-2 font-serif text-lg"
+          >
+            <i data-lucide="info" class="w-4 h-4 text-secondary"></i>
+            預繳循環押金
+          </h3>
+          <p class="text-xs text-muted-foreground leading-relaxed">
+            為了保障容器循環，免除綁定信用卡帶來的資安疑慮，我們採用「單次儲值」機制。請先儲值
+            300 元作為循環押金。
+          </p>
+        </div>
+        <button
+          onclick="login()"
+          class="w-full rounded-full bg-secondary py-4 font-bold text-secondary-foreground hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_4px_20px_-2px_rgba(193,140,93,0.25)] flex items-center justify-center gap-2"
+        >
+          <i data-lucide="wallet" class="w-4 h-4"></i> 儲值 $300 進入系統
+        </button>
       </div>
-      <button onclick="login()" class="w-full rounded-xl bg-cyan-500 py-4 font-bold text-slate-950 hover:bg-cyan-400 transition shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-        模擬儲值 $300 並進入系統
-      </button>
-    </div>
-  </main>
+    </main>
 
-  <script>
-    function nextStep() {
-      document.getElementById('step1').classList.add('hidden');
-      document.getElementById('step2').classList.remove('hidden');
-    }
-    function login() {
-      // 實務上這裡會呼叫 API 建立帳號並初始化餘額，Demo 直接跳轉
-      window.location.href = "user.html";
-    }
-  </script>
-</body>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => lucide.createIcons());
+      function nextStep() {
+        document.getElementById("step1").classList.add("hidden");
+        document.getElementById("step2").classList.remove("hidden");
+      }
+      function login() {
+        window.location.href = "user.html";
+      }
+    </script>
+  </body>
 </html>

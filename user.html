@@ -1,325 +1,567 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>用戶端 - 環保容器循環系統</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @keyframes scanline {
-      0% { top: 0%; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { top: 100%; opacity: 0; }
-    }
-    .animate-scan {
-      animation: scanline 2s linear infinite;
-    }
-    /* 隱藏卷軸但保持可滑動 */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
-</head>
-<body class="min-h-screen bg-slate-950 text-slate-100 relative pb-20">
-  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.15),_transparent_45%)] pointer-events-none"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>用戶端 - 循環日常</title>
 
-  <main class="relative mx-auto flex flex-col lg:flex-row min-h-[90vh] w-full max-w-5xl gap-8 px-4 py-8 items-start justify-center">
-    
-    <div class="w-full max-w-md flex flex-col mx-auto lg:mx-0">
-      
-      <section class="w-full rounded-3xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur relative overflow-hidden">
-        <div class="flex justify-between items-start relative z-10">
-          <div>
-            <h1 class="text-xl font-bold">我的環保帳戶 <span class="text-xs text-slate-400 ml-2">USER_5487</span></h1>
-            <button onclick="toggleShop()" class="mt-2 text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/30 hover:bg-emerald-500/40 transition">
-              🎁 進入獎勵商店兌換
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;600;700&family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Nunito", "sans-serif"],
+              serif: ["Fraunces", "serif"],
+            },
+            colors: {
+              foreground: "#2C2C24",
+              primary: "#5D7052",
+              "primary-foreground": "#F3F4F1",
+              secondary: "#C18C5D",
+              muted: "#F0EBE5",
+              "muted-foreground": "#78786C",
+              border: "#DED8CF",
+              destructive: "#A85448",
+            },
+            boxShadow: { soft: "0 4px 20px -2px rgba(93, 112, 82, 0.15)" },
+          },
+        },
+      };
+    </script>
+    <style>
+      .noise-overlay::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0.04;
+        pointer-events: none;
+        mix-blend-mode: multiply;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E");
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      @keyframes scanline {
+        0% {
+          top: 0%;
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          top: 100%;
+          opacity: 0;
+        }
+      }
+      .animate-scan {
+        animation: scanline 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen bg-[radial-gradient(circle_at_center,_#F9FBF5_0%,_#E1EED3_50%,_#C2DBAA_100%)] text-foreground relative pb-20 font-sans noise-overlay overflow-x-hidden"
+  >
+    <div
+      class="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[100px] rounded-[60%_40%_30%_70%/60%_30%_70%_40%] pointer-events-none z-0"
+    ></div>
+
+    <main
+      class="relative z-10 mx-auto flex flex-col lg:flex-row min-h-[90vh] w-full max-w-6xl gap-8 lg:gap-12 px-4 py-8 items-start justify-center"
+    >
+      <div class="w-full max-w-md flex flex-col mx-auto lg:mx-0">
+        <section
+          class="w-full bg-[#FEFEFA] border border-border/80 p-6 sm:p-8 shadow-soft rounded-[2rem] rounded-tr-[3rem] rounded-bl-[3rem] relative overflow-hidden group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_15px_35px_-5px_rgba(93,112,82,0.15)]"
+        >
+          <div class="flex justify-between items-start relative z-10">
+            <div>
+              <h1
+                class="text-xl sm:text-2xl font-serif font-semibold text-primary flex items-center gap-2.5"
+              >
+                <div
+                  class="h-8 w-8 rounded-[40%_60%_70%_30%/40%_50%_60%_50%] bg-primary/10 flex items-center justify-center"
+                >
+                  <i data-lucide="user" class="w-4 h-4 text-primary"></i>
+                </div>
+                我的環保帳戶
+                <span
+                  class="text-[11px] text-muted-foreground font-sans font-medium ml-1"
+                  >USER_5487</span
+                >
+              </h1>
+              <button
+                onclick="toggleShop()"
+                class="mt-4 text-xs bg-primary/10 text-primary px-5 py-2 rounded-full hover:bg-primary/20 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-1.5 font-bold shadow-sm"
+              >
+                <i data-lucide="gift" class="w-3.5 h-3.5"></i> 進入獎勵商店
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-7 mb-6 h-px w-full bg-border/50"></div>
+
+          <div class="grid grid-cols-2 gap-4 relative z-10">
+            <div
+              class="bg-white p-4 sm:p-5 border border-border/40 hover:border-border/80 transition-colors duration-300 rounded-[1.5rem] rounded-tl-[2rem] shadow-sm"
+            >
+              <p
+                class="text-xs text-muted-foreground font-semibold flex items-center gap-1.5 tracking-wider"
+              >
+                <i data-lucide="wallet" class="w-3.5 h-3.5"></i> 錢包餘額
+              </p>
+              <p
+                id="balanceText"
+                class="mt-2.5 text-2xl font-serif font-bold text-foreground tracking-tight"
+              >
+                -- 元
+              </p>
+            </div>
+            <div
+              class="bg-white p-4 sm:p-5 border border-border/40 hover:border-primary/30 transition-colors duration-300 rounded-[1.5rem] rounded-tr-[2.5rem] shadow-sm"
+            >
+              <p
+                class="text-xs text-muted-foreground font-semibold flex items-center gap-1.5 tracking-wider"
+              >
+                <i data-lucide="star" class="w-3.5 h-3.5 text-primary"></i>
+                環保點數
+              </p>
+              <p
+                id="pointsText"
+                class="mt-2.5 text-2xl font-serif font-bold text-primary tracking-tight"
+              >
+                -- 點
+              </p>
+            </div>
+            <div
+              class="bg-white p-4 sm:p-5 border border-border/40 hover:border-secondary/30 transition-colors duration-300 rounded-[1.5rem] rounded-bl-[2.5rem] shadow-sm"
+            >
+              <p
+                class="text-xs text-muted-foreground font-semibold flex items-center gap-1.5 tracking-wider"
+              >
+                <i
+                  data-lucide="shield-check"
+                  class="w-3.5 h-3.5 text-secondary"
+                ></i>
+                信用評分
+              </p>
+              <p
+                id="creditText"
+                class="mt-2.5 text-2xl font-serif font-bold text-secondary tracking-tight"
+              >
+                -- 分
+              </p>
+            </div>
+            <div
+              class="bg-white p-4 sm:p-5 border border-border/40 hover:border-primary/30 transition-colors duration-300 rounded-[1.5rem] rounded-br-[2rem] shadow-sm"
+            >
+              <p
+                class="text-xs text-muted-foreground font-semibold flex items-center gap-1.5 tracking-wider"
+              >
+                <i data-lucide="trees" class="w-3.5 h-3.5 text-primary/80"></i>
+                累計減碳
+              </p>
+              <p
+                id="carbonText"
+                class="mt-2.5 text-2xl font-serif font-bold text-foreground tracking-tight"
+              >
+                -- kg
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-8 w-full text-center relative z-10">
+          <div
+            id="cameraMockup"
+            class="hidden mb-5 w-full h-48 bg-white/50 border-2 border-dashed border-border rounded-[2rem] relative overflow-hidden flex flex-col items-center justify-center backdrop-blur-sm shadow-inner"
+          >
+            <div
+              class="absolute w-full h-[2px] bg-primary/60 shadow-[0_0_15px_rgba(93,112,82,0.8)] animate-scan"
+            ></div>
+            <p
+              class="text-primary font-medium text-sm animate-pulse flex items-center gap-2"
+            >
+              <i data-lucide="scan-line" class="w-4 h-4"></i> 正在感應商家 QR
+              Code...
+            </p>
+          </div>
+
+          <button
+            id="rentBtn"
+            class="w-full rounded-full bg-primary py-4 sm:py-5 text-base sm:text-lg font-bold text-primary-foreground hover:scale-[1.02] active:scale-95 transition-all duration-300 shadow-soft disabled:bg-muted disabled:text-muted-foreground disabled:hover:scale-100 flex items-center justify-center gap-2.5"
+          >
+            <i data-lucide="scan" class="w-5 h-5"></i>
+            <span id="rentBtnText">掃碼租借</span>
+          </button>
+          <p
+            id="statusHint"
+            class="mt-4 text-sm text-primary font-medium animate-pulse"
+          >
+            等待商家生成 QR Code...
+          </p>
+
+          <div class="mt-5 flex gap-4">
+            <button
+              id="returnBtn"
+              class="flex-1 rounded-full border-2 border-border bg-white py-3 text-sm font-bold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm hover:shadow"
+            >
+              <i data-lucide="undo-2" class="w-4 h-4"></i> 模擬歸還
+            </button>
+            <button
+              id="overdueBtn"
+              class="flex-1 rounded-full border-2 border-destructive/30 bg-white py-3 text-sm font-bold text-destructive/80 hover:bg-destructive/10 hover:border-destructive/50 transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm hover:shadow"
+            >
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i> 模擬逾期
+            </button>
+          </div>
+        </section>
+
+        <section class="mt-12 w-full text-left relative z-10">
+          <h2
+            class="text-xl font-serif font-bold mb-6 flex items-center gap-2.5 text-foreground"
+          >
+            <i data-lucide="receipt" class="w-6 h-6 text-primary"></i>
+            交易紀錄與詳情
+          </h2>
+          <div id="transactionList" class="space-y-5"></div>
+        </section>
+      </div>
+
+      <aside
+        class="w-full max-w-md mx-auto lg:mx-0 lg:w-[22rem] flex-shrink-0 lg:sticky lg:top-8 relative z-10"
+      >
+        <section
+          class="w-full bg-[#FEFEFA] border border-border/80 p-6 sm:p-7 shadow-soft rounded-[2rem] rounded-tl-[3rem] max-h-[85vh] overflow-y-auto no-scrollbar"
+        >
+          <div
+            class="flex items-center gap-2.5 mb-6 pb-4 border-b border-border/50"
+          >
+            <div
+              class="h-9 w-9 rounded-[30%_70%_70%_30%/30%_30%_70%_70%] bg-secondary/10 flex items-center justify-center"
+            >
+              <i data-lucide="map-pin" class="w-5 h-5 text-secondary"></i>
+            </div>
+            <h2
+              class="text-base font-serif font-bold text-foreground tracking-tight"
+            >
+              附近合作商家
+            </h2>
+          </div>
+          <div id="merchantList" class="space-y-4"></div>
+        </section>
+      </aside>
+    </main>
+
+    <div
+      id="shopModal"
+      class="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-[#FEFEFA] border border-border rounded-[2.5rem] w-full max-w-sm p-8 shadow-float relative overflow-hidden"
+      >
+        <div
+          class="absolute inset-0 opacity-[0.03] mix-blend-multiply pointer-events-none"
+          style="
+            background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E&quot;);
+          "
+        ></div>
+
+        <div
+          class="flex justify-between items-center mb-6 relative z-10 border-b border-border/50 pb-4"
+        >
+          <h2
+            class="text-xl font-serif font-bold text-primary flex items-center gap-2.5"
+          >
+            <i data-lucide="gift" class="w-5 h-5 text-secondary"></i> 兌換商店
+          </h2>
+          <button
+            onclick="toggleShop()"
+            class="text-muted-foreground hover:text-foreground text-2xl w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div class="space-y-4 relative z-10">
+          <div
+            class="bg-white p-5 rounded-[1.2rem] border border-border/60 flex justify-between items-center hover:border-primary/40 transition-colors shadow-sm group"
+          >
+            <div>
+              <h3 class="font-bold text-foreground text-sm">5 元現金折扣券</h3>
+              <p class="text-[11px] text-muted-foreground mt-1 tracking-wider">
+                全台合作點可用
+              </p>
+            </div>
+            <button
+              onclick="redeemReward(50, '5 元折扣券')"
+              class="bg-primary text-white font-bold px-4 py-2 rounded-lg hover:bg-primary/90 hover:-translate-y-0.5 active:scale-95 transition-all text-sm shadow-soft"
+            >
+              50 點
+            </button>
+          </div>
+          <div
+            class="bg-white p-5 rounded-[1.2rem] border border-border/60 flex justify-between items-center hover:border-secondary/40 transition-colors shadow-sm group"
+          >
+            <div>
+              <h3 class="font-bold text-foreground text-sm">免費租借券 x1</h3>
+              <p class="text-[11px] text-muted-foreground mt-1 tracking-wider">
+                抵扣一次押金手續
+              </p>
+            </div>
+            <button
+              onclick="redeemReward(100, '免費租借券')"
+              class="bg-secondary text-white font-bold px-4 py-2 rounded-lg hover:bg-secondary/90 hover:-translate-y-0.5 active:scale-95 transition-all text-sm shadow-soft"
+            >
+              100 點
             </button>
           </div>
         </div>
-        
-        <div class="mt-6 grid grid-cols-2 gap-4 relative z-10">
-          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
-            <p class="text-xs text-slate-400">錢包餘額</p>
-            <p id="balanceText" class="mt-2 text-2xl font-black text-white">-- 元</p>
-          </div>
-          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
-            <p class="text-xs text-slate-400">環保點數</p>
-            <p id="pointsText" class="mt-2 text-2xl font-black text-emerald-400">-- 點</p>
-          </div>
-          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
-            <p class="text-xs text-slate-400">信用評分</p>
-            <p id="creditText" class="mt-2 text-2xl font-black text-blue-400">-- 分</p>
-          </div>
-          <div class="rounded-2xl bg-slate-800/50 p-4 border border-slate-800">
-            <p class="text-xs text-slate-400">累計減碳量</p>
-            <p id="carbonText" class="mt-2 text-2xl font-black text-cyan-400">-- kg</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="mt-8 w-full text-center">
-        <div id="cameraMockup" class="hidden mb-4 w-full h-48 bg-slate-900 border-2 border-dashed border-slate-600 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center">
-          <div class="absolute w-full h-1 bg-emerald-400 shadow-[0_0_10px_#34d399] animate-scan"></div>
-          <p class="text-slate-400 text-sm animate-pulse">正在掃描商家 QR Code...</p>
-        </div>
-
-        <button id="rentBtn" class="w-full rounded-2xl bg-emerald-500 py-5 text-lg font-black text-slate-950 transition-all hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-600">
-          <span id="rentBtnText">掃碼租借</span>
-        </button>
-        <p id="statusHint" class="mt-4 text-sm text-slate-400">等待商家生成 QR Code...</p>
-        
-        <div class="mt-4 flex gap-3">
-          <button id="returnBtn" class="flex-1 rounded-2xl border border-slate-700 py-3 text-sm font-bold text-slate-400 hover:bg-slate-800">
-            模擬歸還
-          </button>
-          <button id="overdueBtn" class="flex-1 rounded-2xl border border-red-500/50 py-3 text-sm font-bold text-red-400 hover:bg-red-500/20 transition">
-            模擬逾期 (-20分)
-          </button>
-        </div>
-      </section>
-
-      <section class="mt-10 w-full">
-        <h2 class="text-lg font-bold mb-4 border-l-4 border-emerald-500 pl-3">交易紀錄與詳情</h2>
-        <div id="transactionList" class="space-y-4"></div>
-      </section>
-
-    </div>
-
-    <aside class="w-full max-w-md mx-auto lg:mx-0 lg:w-96 flex-shrink-0 lg:sticky lg:top-8">
-      <section class="w-full rounded-3xl border border-slate-700 bg-slate-900/80 p-6 shadow-2xl backdrop-blur max-h-[85vh] overflow-y-auto no-scrollbar">
-        <div class="flex items-center gap-2 mb-6">
-          <span class="text-xl">📍</span>
-          <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest">附近合作商家</h2>
-        </div>
-        <div id="merchantList" class="space-y-4">
-          </div>
-      </section>
-    </aside>
-
-  </main>
-
-  <div id="shopModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-sm p-6 shadow-2xl">
-      <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
-        <h2 class="text-xl font-bold text-emerald-400">🎁 獎勵兌換商店</h2>
-        <button onclick="toggleShop()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
-      </div>
-      
-      <div class="space-y-4">
-        <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
-          <div>
-            <h3 class="font-bold text-white">5 元現金折扣券</h3>
-            <p class="text-xs text-slate-400 mt-1">適用於所有合作商家</p>
-          </div>
-          <button onclick="redeemReward(50, '5 元現金折扣券')" class="bg-cyan-500 text-slate-950 font-bold px-4 py-2 rounded-xl hover:bg-cyan-400 text-sm">
-            50 點
-          </button>
-        </div>
-        
-        <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
-          <div>
-            <h3 class="font-bold text-white">免費租借券 x1</h3>
-            <p class="text-xs text-slate-400 mt-1">抵扣一次租借押金手續</p>
-          </div>
-          <button onclick="redeemReward(100, '免費租借券')" class="bg-cyan-500 text-slate-950 font-bold px-4 py-2 rounded-xl hover:bg-cyan-400 text-sm">
-            100 點
-          </button>
-        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const API_BASE = window.location.origin;
-    let openDropdowns = new Set(); 
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof lucide !== "undefined") lucide.createIcons();
+        fetchStatus();
+      });
 
-    function toggleShop() {
-      document.getElementById('shopModal').classList.toggle('hidden');
-    }
+      const API_BASE = window.location.origin;
+      let openDropdowns = new Set();
 
-    async function redeemReward(cost, itemName) {
-      try {
-        const response = await fetch(`${API_BASE}/api/redeem`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cost, itemName })
-        });
-        const result = await response.json();
-        
-        if (result.success) {
-          alert(`🎉 ${result.message}`);
-          fetchStatus(); 
-        } else {
-          alert(`❌ ${result.message}`);
+      function toggleShop() {
+        document.getElementById("shopModal").classList.toggle("hidden");
+        lucide.createIcons();
+      }
+
+      async function redeemReward(cost, itemName) {
+        try {
+          const response = await fetch(`${API_BASE}/api/redeem`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cost, itemName }),
+          });
+          const result = await response.json();
+          alert(
+            result.success ? `🎉 ${result.message}` : `❌ ${result.message}`,
+          );
+          if (result.success) fetchStatus();
+        } catch (e) {
+          alert("網路連線錯誤");
         }
-      } catch (e) {
-        alert("網路連線錯誤");
-      }
-    }
-
-    window.toggleDetail = function(txId) {
-      if (openDropdowns.has(txId)) openDropdowns.delete(txId);
-      else openDropdowns.add(txId);
-      const el = document.getElementById(`detail-${txId}`);
-      if (el) el.classList.toggle("hidden");
-    };
-
-    function renderTransactions(transactions) {
-      const list = document.getElementById("transactionList");
-      if (transactions.length === 0) {
-        list.innerHTML = '<p class="text-center text-slate-600 text-sm py-10">尚無交易紀錄</p>';
-        return;
       }
 
-      list.innerHTML = transactions.map(tx => {
-        const isComp = tx.isCompleted;
-        const statusColor = isComp ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" : "text-orange-400 border-orange-500/30 bg-orange-500/10";
-        const statusText = isComp ? "歸還完成" : "尚未歸還完成";
-        const isHidden = openDropdowns.has(tx.id) ? "" : "hidden";
+      window.toggleDetail = function (txId) {
+        if (openDropdowns.has(txId)) openDropdowns.delete(txId);
+        else openDropdowns.add(txId);
+        const el = document.getElementById(`detail-${txId}`);
+        if (el) el.classList.toggle("hidden");
+      };
 
-        return `
-          <div class="rounded-2xl border border-slate-700 bg-slate-900/90 overflow-hidden shadow-lg">
-            <button onclick="toggleDetail('${tx.id}')" class="w-full p-5 text-left flex justify-between items-start hover:bg-slate-800/50 transition">
-              <div>
-                <h3 class="font-bold text-base text-white">${tx.merchantName}</h3>
-                <p class="text-[10px] text-slate-500 mt-1">${tx.date}</p>
-                <div class="mt-3 flex gap-4">
+      function renderTransactions(transactions) {
+        const list = document.getElementById("transactionList");
+        if (transactions.length === 0) {
+          list.innerHTML =
+            '<p class="text-center text-muted-foreground text-sm py-10 border-2 border-dashed border-border rounded-2xl bg-white shadow-inner">尚無交易紀錄</p>';
+          return;
+        }
+
+        list.innerHTML = transactions
+          .map((tx) => {
+            const isComp = tx.isCompleted;
+            const statusColor = isComp
+              ? "text-primary bg-primary/10 border-primary/20"
+              : "text-secondary bg-secondary/10 border-secondary/20";
+            const statusText = isComp ? "歸還完成" : "租借中";
+            const isHidden = openDropdowns.has(tx.id) ? "" : "hidden";
+
+            return `
+          <div class="rounded-[1.5rem] border border-border/80 bg-[#FEFEFA] shadow hover:shadow-soft transition-all duration-300 overflow-hidden">
+            <button onclick="toggleDetail('${tx.id}')" class="w-full p-5 sm:p-6 text-left flex justify-between items-start hover:bg-muted/30 transition-colors">
+              <div class="min-w-0">
+                <h3 class="font-bold text-base text-foreground flex items-center gap-1.5 font-serif">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary flex-shrink-0"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="7" height="5" x="7" y="7" rx="1"/><rect width="7" height="5" x="10" y="12" rx="1"/></svg>
+                  <span class="truncate">${tx.merchantName}</span>
+                </h3>
+                <p class="text-[10px] text-muted-foreground mt-1">${tx.date}</p>
+                <div class="mt-4 flex gap-5">
                   <div>
-                    <p class="text-[10px] text-slate-500 uppercase">交易金額</p>
-                    <p class="text-sm font-bold text-emerald-400">$${tx.amount}</p>
+                    <p class="text-[11px] text-muted-foreground font-semibold">交易金額</p>
+                    <p class="text-base font-bold text-foreground">$${tx.amount}</p>
                   </div>
                   <div>
-                    <p class="text-[10px] text-slate-500 uppercase">應歸還日期</p>
-                    <p class="text-sm font-bold text-slate-200">${tx.deadline}</p>
+                    <p class="text-[11px] text-muted-foreground font-semibold">應還日期</p>
+                    <p class="text-base font-bold text-foreground">${tx.deadline}</p>
                   </div>
                 </div>
               </div>
-              <div class="flex flex-col items-end gap-2">
-                <span class="px-2 py-1 rounded-md border text-[10px] font-bold ${statusColor}">${statusText}</span>
-                <span class="text-slate-600 text-xs">詳情 ▼</span>
+              <div class="flex flex-col items-end gap-3 flex-shrink-0 ml-3">
+                <span class="px-3 py-1 rounded-full border text-[10px] sm:text-xs font-bold ${statusColor}">${statusText}</span>
+                <span class="text-muted-foreground text-xs font-medium flex items-center gap-1">詳情 <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></span>
               </div>
             </button>
 
-            <div id="detail-${tx.id}" class="${isHidden} bg-slate-950/50 border-t border-slate-800 p-5 space-y-4">
-              ${tx.details.map(item => `
-                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs font-bold text-white">${item.typeName}</span>
-                      <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${item.id}</span>
+            <div id="detail-${tx.id}" class="${isHidden} bg-white/50 border-t border-border/50 p-5 space-y-3 shadow-inner">
+              ${tx.details
+                .map(
+                  (item) => `
+                <div class="flex items-center justify-between p-4 rounded-xl bg-white border border-border/40 hover:border-border transition-colors shadow-sm">
+                  <div class="space-y-1.5 min-w-0">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-sm font-bold text-foreground">${item.typeName}</span>
+                      <span class="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-mono tracking-tight">${item.id}</span>
                     </div>
-                    <p class="text-[10px] text-slate-500">
-                      ${item.isReturned ? `歸還日期: ${item.returnDate}` : `歸還期限: ${tx.deadline}`}
+                    <p class="text-[11px] text-muted-foreground truncate">
+                      ${item.isReturned ? `<span class="text-primary font-medium">已於 ${item.returnDate} 歸還</span>` : `請於 ${tx.deadline} 前歸還`}
                     </p>
                   </div>
-                  <span class="text-xs font-bold ${item.isReturned ? 'text-emerald-500' : 'text-orange-500'}">
-                    ${item.isReturned ? '已歸還' : '使用中'}
+                  <span class="text-xs font-bold px-3 py-1.5 rounded-md flex-shrink-0 ml-3 ${item.isReturned ? "text-primary bg-primary/5 border border-primary/10" : "text-secondary bg-secondary/5 border border-secondary/10"}">
+                    ${item.isReturned ? "已歸還" : "使用中"}
                   </span>
                 </div>
-              `).join('')}
+              `,
+                )
+                .join("")}
             </div>
           </div>
         `;
-      }).join('');
-    }
+          })
+          .join("");
+        lucide.createIcons();
+      }
 
-    async function fetchStatus() {
-      try {
-        const response = await fetch(`${API_BASE}/api/status`);
-        const result = await response.json();
-        if (result.success) {
-          const d = result.data;
-          document.getElementById("balanceText").textContent = `${d.balance} 元`;
-          document.getElementById("pointsText").textContent = `${d.points} 點`;
-          document.getElementById("creditText").textContent = `${d.userCreditScore} 分`;
-          document.getElementById("carbonText").textContent = `${d.userCarbonSaved.toFixed(2)} kg`;
-          
-          // 渲染附近商家列表，加上精緻的卡片樣式
-          const mList = document.getElementById("merchantList");
-          if (d.nearbyMerchants) {
-            mList.innerHTML = d.nearbyMerchants.sort((a,b) => b.contribution - a.contribution).map((m, index) => {
-              // 貢獻度前兩名加上高光提示
-              const highlight = index < 2 ? "border-emerald-500/40 bg-slate-800/80 shadow-[0_0_15px_rgba(16,185,129,0.1)]" : "border-slate-800 bg-slate-900/50";
-              return `
-                <div class="${highlight} p-4 rounded-2xl flex justify-between items-center hover:border-emerald-500/60 transition cursor-pointer">
-                  <div>
-                    <p class="font-bold text-sm text-white flex items-center gap-1">
-                      ${m.name} ${index === 0 ? '<span class="text-xs">👑</span>' : ''}
+      async function fetchStatus() {
+        try {
+          const response = await fetch(`${API_BASE}/api/status`);
+          const result = await response.json();
+          if (result.success) {
+            const d = result.data;
+            document.getElementById("balanceText").textContent =
+              `${d.balance} 元`;
+            document.getElementById("pointsText").textContent =
+              `${d.points} 點`;
+            document.getElementById("creditText").textContent =
+              `${d.userCreditScore} 分`;
+            document.getElementById("carbonText").textContent =
+              `${d.userCarbonSaved.toFixed(2)} kg`;
+
+            const mList = document.getElementById("merchantList");
+            if (d.nearbyMerchants) {
+              mList.innerHTML = d.nearbyMerchants
+                .sort((a, b) => b.contribution - a.contribution)
+                .map((m, index) => {
+                  const highlight =
+                    index < 2
+                      ? "border-primary/20 bg-primary/5"
+                      : "border-border/40 bg-white";
+                  const titleColor =
+                    index === 0 ? "text-primary" : "text-foreground";
+                  return `
+                <div class="${highlight} p-5 rounded-[1.5rem] border flex justify-between items-center hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-soft transition-all duration-300 group shadow-sm cursor-pointer">
+                  <div class="min-w-0">
+                    <p class="font-bold text-sm ${titleColor} flex items-center gap-1.5 font-serif tracking-tight">
+                      <span class="truncate">${m.name}</span>
+                      ${index === 0 ? '<i data-lucide="sprout" class="w-3.5 h-3.5 text-primary"></i>' : ""}
                     </p>
-                    <p class="text-[10px] text-slate-500 mt-1">距離：${m.distance} | 評分：★${m.rating}</p>
+                    <p class="text-[10px] text-muted-foreground mt-1">距離：${m.distance} | 評分：★${m.rating}</p>
                   </div>
-                  <div class="text-right">
-                    <p class="text-[9px] text-emerald-400 font-bold uppercase tracking-tighter">環保貢獻度</p>
-                    <p class="text-lg font-black text-emerald-400">${m.contribution}</p>
+                  <div class="text-right flex-shrink-0 ml-3">
+                    <p class="text-[9px] text-primary font-semibold tracking-wider uppercase">貢獻度</p>
+                    <p class="text-lg font-serif font-black text-primary">${m.contribution}</p>
                   </div>
                 </div>
               `;
-            }).join('');
-          }
-
-          const rentBtn = document.getElementById("rentBtn");
-          const statusHint = document.getElementById("statusHint");
-          
-          if (document.getElementById('cameraMockup').classList.contains('hidden')) {
-            if (d.isPrepared) {
-              rentBtn.disabled = false;
-              rentBtn.classList.replace("bg-emerald-500", "bg-cyan-400");
-              document.getElementById("rentBtnText").textContent = "掃描商家 QR Code";
-              statusHint.textContent = "商家已準備好，請掃碼";
-            } else {
-              rentBtn.disabled = true;
-              rentBtn.classList.replace("bg-cyan-400", "bg-emerald-500");
-              document.getElementById("rentBtnText").textContent = "相機尚未開啟";
-              statusHint.textContent = "等待商家生成 QR Code...";
+                })
+                .join("");
+              lucide.createIcons();
             }
+
+            const rentBtn = document.getElementById("rentBtn");
+            const statusHint = document.getElementById("statusHint");
+
+            if (
+              document
+                .getElementById("cameraMockup")
+                .classList.contains("hidden")
+            ) {
+              if (d.isPrepared) {
+                rentBtn.disabled = false;
+                rentBtn.classList.replace("bg-slate-200", "bg-emerald-500");
+                document.getElementById("rentBtnText").textContent =
+                  "確認掃描租借";
+                statusHint.textContent = "商家已備妥，請點擊確認租借";
+              } else {
+                rentBtn.disabled = true;
+                rentBtn.classList.replace("bg-emerald-500", "bg-slate-200");
+                document.getElementById("rentBtnText").textContent =
+                  "相機尚未開啟";
+                statusHint.textContent = "等待商家生成 QR Code...";
+              }
+            }
+            renderTransactions(d.transactions);
           }
-
-          renderTransactions(d.transactions);
+        } catch (e) {
+          console.error("同步失敗", e);
         }
-      } catch (e) { console.error("同步失敗", e); }
-    }
-
-    document.getElementById("rentBtn").addEventListener("click", () => {
-      const camera = document.getElementById('cameraMockup');
-      const rentBtn = document.getElementById('rentBtn');
-      
-      camera.classList.remove('hidden');
-      rentBtn.classList.add('hidden');
-      
-      setTimeout(async () => {
-        const res = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
-        const data = await res.json();
-        
-        camera.classList.add('hidden');
-        rentBtn.classList.remove('hidden');
-
-        if (!data.success) {
-          alert(data.message);
-        } else {
-          fetchStatus();
-        }
-      }, 1500);
-    });
-
-    document.getElementById("returnBtn").addEventListener("click", async () => {
-      const res = await fetch(`${API_BASE}/api/return`, { method: "POST" });
-      const data = await res.json();
-      alert(data.message);
-      fetchStatus();
-    });
-
-    document.getElementById("overdueBtn").addEventListener("click", async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/test-overdue`, { method: "POST" });
-        const data = await res.json();
-        alert(data.message);
-        fetchStatus();
-      } catch (e) {
-        alert("連線錯誤");
       }
-    });
 
-    setInterval(fetchStatus, 1500);
-  </script>
-</body>
+      document.getElementById("rentBtn").addEventListener("click", () => {
+        const camera = document.getElementById("cameraMockup");
+        const rentBtn = document.getElementById("rentBtn");
+        camera.classList.remove("hidden");
+        rentBtn.classList.add("hidden");
+        setTimeout(async () => {
+          const res = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
+          const data = await res.json();
+          camera.classList.add("hidden");
+          rentBtn.classList.remove("hidden");
+          if (!data.success) alert(data.message);
+          else fetchStatus();
+        }, 1500);
+      });
+
+      document
+        .getElementById("returnBtn")
+        .addEventListener("click", async () => {
+          const res = await fetch(`${API_BASE}/api/return`, { method: "POST" });
+          const data = await res.json();
+          alert(data.message);
+          fetchStatus();
+        });
+
+      document
+        .getElementById("overdueBtn")
+        .addEventListener("click", async () => {
+          try {
+            const res = await fetch(`${API_BASE}/api/test-overdue`, {
+              method: "POST",
+            });
+            const data = await res.json();
+            alert(data.message);
+            fetchStatus();
+          } catch (e) {
+            alert("連線錯誤");
+          }
+        });
+
+      setInterval(fetchStatus, 1500);
+    </script>
+  </body>
 </html>
