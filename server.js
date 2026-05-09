@@ -11,9 +11,9 @@ app.use(express.json());
 // ==========================================
 // 模擬資料庫 (MVP 狀態儲存)
 // ==========================================
-let cupStatus = "idle"; // 容器狀態：'idle' (在庫待租借), 'rented' (借出中)
-let userBalance = 100;  // 模擬用戶錢包餘額
-let userPoints = 0;     // 模擬用戶獲得的環保獎勵點數
+let status = "idle"; // 容器狀態：'idle' (在庫待租借), 'rented' (借出中)
+let balance = 100;   // 模擬用戶錢包餘額
+let points = 0;      // 模擬用戶獲得的環保獎勵點數
 
 // ==========================================
 // API 端點設定
@@ -24,53 +24,54 @@ app.get('/api/status', (req, res) => {
     res.json({
         success: true,
         data: {
-            cupStatus: cupStatus,
-            userBalance: userBalance,
-            userPoints: userPoints
+            status: status,
+            balance: balance,
+            points: points,
+            timestamp: new Date().toISOString()
         }
     });
 });
 
 // 2. 用戶掃碼租借 (由前端網頁呼叫)
 app.post('/api/rent', (req, res) => {
-    if (cupStatus === "rented") {
+    if (status === "rented") {
         return res.status(400).json({ success: false, message: "容器已被借走" });
     }
     
-    if (userBalance < 50) {
+    if (balance < 50) {
         return res.status(400).json({ success: false, message: "餘額不足，無法支付押金" });
     }
 
     // 執行借出邏輯：扣除押金，更改狀態
-    userBalance -= 50;
-    cupStatus = "rented";
+    balance -= 50;
+    status = "rented";
 
-    console.log(`[系統通知] 容器已借出！扣除押金 50 元。目前餘額: ${userBalance}`);
+    console.log(`[系統通知] 容器已借出！扣除押金 50 元。目前餘額: ${balance}`);
 
     res.json({
         success: true,
         message: "租借成功",
-        data: { cupStatus, userBalance }
+        data: { status, balance, points }
     });
 });
 
 // 3. 實體歸還通知 (由 ESP32 呼叫)
 app.post('/api/return', (req, res) => {
-    if (cupStatus === "idle") {
+    if (status === "idle") {
         return res.status(400).json({ success: false, message: "容器目前已經是在庫狀態" });
     }
 
     // 執行歸還邏輯：退回押金，給予環保點數，更改狀態
-    userBalance += 50;
-    userPoints += 10;
-    cupStatus = "idle";
+    balance += 50;
+    points += 10;
+    status = "idle";
 
-    console.log(`[系統通知] 容器已歸還！退回押金 50 元，並發放 10 點獎勵。目前餘額: ${userBalance}, 點數: ${userPoints}`);
+    console.log(`[系統通知] 容器已歸還！退回押金 50 元，並發放 10 點獎勵。目前餘額: ${balance}, 點數: ${points}`);
 
     res.json({
         success: true,
         message: "歸還成功",
-        data: { cupStatus, userBalance, userPoints }
+        data: { status, balance, points }
     });
 });
 
