@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 const PORT = 3000;
+const COOL_DOWN_TIME = 0;
 
 app.use(cors());
 app.use(express.json());
@@ -17,6 +18,7 @@ let isPrepared = false;
 let pendingItems = []; 
 let transactions = [];
 let inventory = [];
+
 
 // 【新增】碳足跡與信用評分、貢獻度變數
 let userCreditScore = 100;         // 用戶信用評分 (預設 100)
@@ -155,7 +157,9 @@ app.post('/api/return', (req, res) => {
     // 【冷卻期防弊機制】檢查借出到歸還的時間差
     const nowMs = Date.now();
     const timeDiff = nowMs - target.rentTimeMs;
-    const isCoolingOff = timeDiff < 10000; // Demo 設定 10 秒內為洗數據 (實務上可設 15 分鐘)
+    
+    // 使用剛才設定的常數來判斷
+    const isCoolingOff = timeDiff < COOL_DOWN_TIME; 
 
     target.isCompleted = true;
     target.details.forEach(detailItem => {
