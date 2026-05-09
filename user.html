@@ -16,142 +16,140 @@
         <p class="mt-1 text-sm text-slate-400">環保容器循環系統 MVP</p>
         <div class="mt-5 grid grid-cols-2 gap-4">
           <div class="rounded-xl bg-slate-800/80 p-4">
-            <p class="text-sm text-slate-400">錢包餘額</p>
-            <p id="balanceText" class="mt-1 text-2xl font-bold text-emerald-400">載入中...</p>
+            <p class="text-sm text-slate-400">餘額</p>
+            <p id="balanceText" class="mt-2 text-2xl font-semibold text-cyan-300">載入中...</p>
           </div>
           <div class="rounded-xl bg-slate-800/80 p-4">
             <p class="text-sm text-slate-400">環保點數</p>
-            <p id="pointsText" class="mt-1 text-2xl font-bold text-cyan-400">載入中...</p>
+            <p id="pointsText" class="mt-2 text-2xl font-semibold text-emerald-300">載入中...</p>
           </div>
         </div>
       </section>
 
-      <section class="mt-8 flex w-full flex-1 flex-col items-center justify-center space-y-6">
-        <div class="w-full text-center">
-          <button
-            id="rentBtn"
-            class="group relative w-full overflow-hidden rounded-2xl bg-emerald-500 py-6 text-xl font-bold text-slate-950 transition-all hover:bg-emerald-400 disabled:opacity-50"
-          >
-            <span id="rentBtnText">掃碼租借</span>
-          </button>
-          <p id="statusHint" class="mt-4 text-sm text-slate-400 text-emerald-500/80">請掃描商家 QR Code 進行租借</p>
-        </div>
-
-        <div id="returnSection" class="hidden w-full text-center">
-          <div class="mb-4 h-px w-full bg-slate-800"></div>
-          <button
-            id="returnBtn"
-            class="w-full rounded-2xl border border-orange-500/50 bg-orange-500/10 py-4 text-lg font-bold text-orange-400 transition-all hover:bg-orange-500/20"
-          >
-            模擬歸還容器
-          </button>
-          <p class="mt-2 text-xs text-slate-500">Demo 專用：模擬容器投入歸還機之動作</p>
-        </div>
+      <section class="mt-12 w-full text-center">
+        <button
+          id="rentBtn"
+          class="w-full rounded-2xl bg-emerald-500 py-6 text-xl font-bold text-slate-950 transition-all hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          等待商家生成
+        </button>
+        <p id="statusHint" class="mt-4 text-sm text-slate-400">請等待商家準備 QR Code</p>
       </section>
 
-      <footer class="mt-auto pt-8 text-center text-xs text-slate-600">
-        &copy; 2026 Northern Taiwan Hackathon - SDG 12 Project
-      </footer>
+      <section id="returnSection" class="mt-8 hidden w-full">
+        <button
+          id="returnBtn"
+          class="w-full rounded-2xl bg-orange-500 py-4 text-lg font-bold text-white shadow-lg hover:bg-orange-400"
+        >
+          模擬歸還 (軟體觸發)
+        </button>
+        <p class="mt-2 text-center text-xs text-slate-500">偵測到容器靠近...點擊確認歸還</p>
+      </section>
     </main>
   </div>
 
+  <div id="returnToast" class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center opacity-0 transition-opacity duration-300">
+    <div id="returnToastCard" class="mx-4 w-full max-w-md scale-95 rounded-2xl border border-emerald-300/40 bg-emerald-500/90 p-6 text-center text-slate-950 shadow-2xl transition-transform duration-300">
+      <p class="text-2xl font-extrabold">歸還成功！</p>
+      <p class="mt-2 text-base font-semibold">退回押金 50 元，獲得點數 10 點</p>
+    </div>
+  </div>
+
   <script>
-    const API_BASE = "http://localhost:3000"; // 自動適應連線位址
+    const API_BASE = "http://localhost:3000";
+    const rentBtn = document.getElementById("rentBtn");
     const balanceText = document.getElementById("balanceText");
     const pointsText = document.getElementById("pointsText");
-    const rentBtn = document.getElementById("rentBtn");
-    const rentBtnText = document.getElementById("rentBtnText");
     const statusHint = document.getElementById("statusHint");
     const returnSection = document.getElementById("returnSection");
     const returnBtn = document.getElementById("returnBtn");
+    const returnToast = document.getElementById("returnToast");
+    const returnToastCard = document.getElementById("returnToastCard");
 
-    let previousStatus = "idle";
+    let previousStatus = null;
 
-    // 更新介面狀態
+    // 更新介面 UI 狀態
     function updateUI(status, isPrepared) {
       if (status === "rented") {
-        // 租借中狀態
         rentBtn.disabled = true;
-        rentBtnText.textContent = "容器使用中";
-        statusHint.textContent = "請歸還後再進行下次租借";
-        statusHint.className = "mt-4 text-sm text-orange-400";
+        rentBtn.textContent = "借用中";
+        statusHint.textContent = "目前容器借用中，等待歸還";
         returnSection.classList.remove("hidden");
       } else {
-        // 待租借狀態
         returnSection.classList.add("hidden");
         if (isPrepared) {
           rentBtn.disabled = false;
-          rentBtnText.textContent = "確認租借";
-          statusHint.textContent = "商家已準備就緒，點擊確認租借";
-          statusHint.className = "mt-4 text-sm text-emerald-400 animate-pulse";
+          rentBtn.textContent = "點擊租借";
+          statusHint.textContent = "商家已準備好，可領取環保容器";
+          statusHint.classList.add("text-emerald-400");
         } else {
           rentBtn.disabled = true;
-          rentBtnText.textContent = "掃碼租借";
-          statusHint.textContent = "等待商家生成租借 QR Code...";
-          statusHint.className = "mt-4 text-sm text-slate-500";
+          rentBtn.textContent = "等待商家生成";
+          statusHint.textContent = "請等待商家準備 QR Code";
+          statusHint.classList.remove("text-emerald-400");
         }
       }
     }
 
-    // 向後端取得最新狀態
+    function showReturnSuccessEffect() {
+      returnToast.classList.replace("opacity-0", "opacity-100");
+      returnToastCard.classList.replace("scale-95", "scale-100");
+      setTimeout(() => {
+        returnToast.classList.replace("opacity-100", "opacity-0");
+        returnToastCard.classList.replace("scale-100", "scale-95");
+      }, 2400);
+    }
+
     async function fetchStatus() {
       try {
         const response = await fetch(`${API_BASE}/api/status`);
         const result = await response.json();
 
         if (result.success) {
-          const d = result.data;
-          // 對齊變數命名: status, balance, points, isPrepared
+          const d = result.data; // 使用統一的變數名稱
           balanceText.textContent = `${d.balance} 元`;
           pointsText.textContent = `${d.points} 點`;
           
           updateUI(d.status, d.isPrepared);
-
-          // 偵測歸還成功瞬間 (提供視覺回饋)
+          
           if (previousStatus === "rented" && d.status === "idle") {
-            alert("歸還成功！押金 50 元已退回帳戶。");
+            showReturnSuccessEffect();
           }
           previousStatus = d.status;
         }
       } catch (error) {
-        console.error("讀取失敗", error);
-        balanceText.textContent = "ERR";
-        pointsText.textContent = "ERR";
+        console.error("狀態更新失敗:", error);
       }
     }
 
-    // 點擊租借
     rentBtn.addEventListener("click", async () => {
       try {
         const response = await fetch(`${API_BASE}/api/rent`, { method: "POST" });
         const res = await response.json();
+
         if (res.success) {
-          alert("租借成功！");
+          alert("租借成功，已扣除押金 50 元");
           fetchStatus();
         } else {
           alert(res.message);
         }
-      } catch (e) {
-        alert("租借請求失敗");
+      } catch (error) {
+        alert("租借請求失敗，請檢查伺服器連線");
       }
     });
 
-    // 點擊歸還 (取代原本的 ESP32 硬體行為)
     returnBtn.addEventListener("click", async () => {
       try {
         const response = await fetch(`${API_BASE}/api/return`, { method: "POST" });
         const res = await response.json();
-        if (res.success) {
-          fetchStatus();
-        }
-      } catch (e) {
+        if (res.success) fetchStatus();
+      } catch (error) {
         alert("歸還請求失敗");
       }
     });
 
-    // 輪詢狀態 (每 1.5 秒更新一次)
-    setInterval(fetchStatus, 1500);
     fetchStatus();
+    setInterval(fetchStatus, 1500);
   </script>
 </body>
 </html>
